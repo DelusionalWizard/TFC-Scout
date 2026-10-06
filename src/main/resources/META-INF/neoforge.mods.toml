@@ -3,7 +3,7 @@ loaderVersion="[4,)"
 license="EUPL-1.2"
 [[mods]]
 modId="terrafirmascout"
-version="0.2.2"
+version="0.2.3"
 displayName="TerraFirmaScout"
 description='''Find a TFC seed that suits your play style, or build a wishlist for your next world.'''
 [[mixins]]

@@ -68,8 +68,42 @@ public final class DevelopmentSmokeTest {
         } catch(Exception e) { e.printStackTrace(); mc.stop(); }
     }
     private static Path output(String file) { return Path.of(System.getProperty("terrafirmascout.reportDir")).resolve(file); }
+    private static void checkWorldTabs() throws Exception {
+        var mc=Minecraft.getInstance();
+        mc.submit(()-> {state=4;mc.setScreen(creationScreen);}).get();
+        String[] labels={"game","world","more"};
+        for(int i=0;i<labels.length;i++) {
+            final int index=i;
+            mc.submit(()-> {
+                try {
+                    var f=CreateWorldScreen.class.getDeclaredField("tabNavigationBar");f.setAccessible(true);
+                    ((net.minecraft.client.gui.components.tabs.TabNavigationBar)f.get(creationScreen)).selectTab(index,false);
+                    var buttons=creationScreen.children().stream().filter(w->w instanceof net.minecraft.client.gui.components.Button b&&b.getMessage().getString().equals("TerraFirmaScout")).toList();
+                    if(buttons.size()!=(index==1?1:0))throw new AssertionError("Scout on wrong tab: "+index);
+                    if(index==1) {
+                        var b=(net.minecraft.client.gui.components.Button)buttons.getFirst();
+                        if(b.getWidth()!=310||Math.abs(b.getX()+155-creationScreen.width/2)>1||b.getY()+b.getHeight()>creationScreen.height-40)throw new AssertionError("Scout button misaligned");
+                    }
+                }catch(ReflectiveOperationException e){throw new RuntimeException(e);}
+            }).get();
+            Thread.sleep(500);
+            final String label=labels[i];
+            mc.submit(()-> {try(var image=Screenshot.takeScreenshot(mc.getMainRenderTarget())){image.writeToFile(output("creation-tab-"+label+".png"));}catch(Exception e){throw new RuntimeException(e);}}).get();
+        }
+        mc.submit(()-> {
+            try {
+                var f=CreateWorldScreen.class.getDeclaredField("tabNavigationBar");f.setAccessible(true);
+                ((net.minecraft.client.gui.components.tabs.TabNavigationBar)f.get(creationScreen)).selectTab(1,false);
+                var b=(net.minecraft.client.gui.components.Button)creationScreen.children().stream().filter(w->w instanceof net.minecraft.client.gui.components.Button button&&button.getMessage().getString().equals("TerraFirmaScout")).findFirst().orElseThrow();
+                b.onPress();
+                if(!(mc.screen instanceof ScoutWorldCreationScreen))throw new AssertionError("Scout button did not open search");
+                mc.setScreen(mainScreen);state=2;ticks=0;
+            }catch(ReflectiveOperationException e){throw new RuntimeException(e);}
+        }).get();
+    }
     private static void run(SearchWorldContext c) {
         try {
+            checkWorldTabs();
             if(Boolean.getBoolean("terrafirmascout.memoryTest")) DevelopmentMemoryTest.run(c);
             long seed=123456789L; var a=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
             var b=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
@@ -152,7 +186,7 @@ public final class DevelopmentSmokeTest {
                 for(var grade:new SeedQuality[]{SeedQuality.GOD,SeedQuality.GOOD,SeedQuality.AVERAGE,SeedQuality.HARD,SeedQuality.SUPER_HARD})
                     benchmark+=benchmark(c,ScoutProfile.preset(grade),grade==SeedQuality.GOD?Integer.getInteger("terrafirmascout.smokeSeconds",300):Integer.getInteger("terrafirmascout.otherSeconds",60));
             }else benchmark=benchmark(c,ScoutProfile.beginner(),Integer.getInteger("terrafirmascout.smokeSeconds",90));
-            var report="Smoke test PASSED\nTFC 4.2.11 / Minecraft 1.21.1 / NeoForge 21.1.234\nSeed: "+seed+
+            var report="Smoke test PASSED\nWorld-tab alignment, Game/More absence and button click: PASSED\nTFC 4.2.11 / Minecraft 1.21.1 / NeoForge 21.1.234\nSeed: "+seed+
                 "\nNative spawn biome: "+spawn+"\n289 repeat region samples: equal, including after native cache release\nFeature-stage SHA-256: "+first+
                 "\nReal chunk climate matches adapter\nRepeat feature-stage block hash: equal\nWorldgen fingerprint: "+fingerprint+"\n"+benchmark+"Total smoke elapsed: "+(System.nanoTime()-start)/1e9+" seconds\n";
             Files.writeString(output("smoke-test.txt"),report); System.out.println(report);

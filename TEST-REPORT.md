@@ -152,3 +152,8 @@ The release still needs every selected requirement confirmed; removing optional 
 
 
 The 0.2.2 development Minecraft smoke run passed: a real climate-and-biome wishlist reached 100 with a minimum match of 100, optional target lists were empty, matching spawn choices passed and a wrong biome failed. History round trips and coordinate-hidden exports passed, and the rendered result labelled unused checks clearly. The 289 native samples and repeated chunk block hashes remained equal. Search budgets were zero in this run; it was a regression check, not a performance benchmark.
+
+## 0.2.3 World-tab button
+
+
+All 19 tests and native Minecraft smoke checks passed. The Scout button is owned by the World-tab grid, centered at width 310; Game and More tabs contain no Scout button. Switching back to World restores it and clicking opens search. Screenshots were inspected. The 289 native samples and repeat generation hash remained unchanged. Full preview-mod combinations were not exercised in this run.
