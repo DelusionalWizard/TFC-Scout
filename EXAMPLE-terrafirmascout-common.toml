@@ -1,0 +1,176 @@
+# TerraFirmaScout 0.1.0 researched defaults. Copy to config/terrafirmascout-common.toml if desired.
+# The addon also creates these defaults automatically on first launch.
+
+[search]
+max_workers = 4
+target_chunks_per_resource = 24
+max_seeds_per_search = 100000
+finalists_per_batch = 5
+
+[god]
+min_score = 95.0
+search_radius = 4000.0
+temperature_min = 7.0
+temperature_ideal_min = 10.0
+temperature_ideal_max = 15.0
+temperature_max = 17.0
+rainfall_min = 220.0
+rainfall_ideal_min = 250.0
+rainfall_ideal_max = 350.0
+rainfall_max = 400.0
+minimum_land_fraction = 0.7
+land_radius = 1000.0
+terrain_distance = 250.0
+camp_distance = 160.0
+starter_copper_units = 100.0
+starter_copper_pieces = 10.0
+challenge_surface_span = 0.0
+freshwater_distance = 160.0
+forest_distance = 350.0
+clay_distance = 300.0
+starter_copper_distance = 750.0
+copper_vein_distance = 1000.0
+flux_distance = 1200.0
+tin_distance = 2000.0
+graphite_distance = 4000.0
+kaolin_distance = 4000.0
+
+[good]
+min_score = 90.0
+search_radius = 6000.0
+temperature_min = 4.0
+temperature_ideal_min = 8.0
+temperature_ideal_max = 18.0
+temperature_max = 22.0
+rainfall_min = 175.0
+rainfall_ideal_min = 225.0
+rainfall_ideal_max = 350.0
+rainfall_max = 450.0
+minimum_land_fraction = 0.65
+land_radius = 1000.0
+terrain_distance = 350.0
+camp_distance = 250.0
+starter_copper_units = 100.0
+starter_copper_pieces = 10.0
+challenge_surface_span = 0.0
+freshwater_distance = 250.0
+forest_distance = 500.0
+clay_distance = 500.0
+starter_copper_distance = 1000.0
+copper_vein_distance = 1500.0
+flux_distance = 2000.0
+tin_distance = 3000.0
+graphite_distance = 5000.0
+kaolin_distance = 6000.0
+
+[average]
+min_score = 85.0
+search_radius = 9000.0
+temperature_min = 0.0
+temperature_ideal_min = 5.0
+temperature_ideal_max = 20.0
+temperature_max = 26.0
+rainfall_min = 125.0
+rainfall_ideal_min = 175.0
+rainfall_ideal_max = 400.0
+rainfall_max = 475.0
+minimum_land_fraction = 0.5
+land_radius = 1000.0
+terrain_distance = 500.0
+camp_distance = 350.0
+starter_copper_units = 100.0
+starter_copper_pieces = 10.0
+challenge_surface_span = 0.0
+freshwater_distance = 400.0
+forest_distance = 800.0
+clay_distance = 800.0
+starter_copper_distance = 1500.0
+copper_vein_distance = 2500.0
+flux_distance = 3500.0
+tin_distance = 4500.0
+graphite_distance = 7000.0
+kaolin_distance = 9000.0
+
+[hard]
+min_score = 80.0
+search_radius = 12000.0
+temperature_min = -8.0
+temperature_ideal_min = -2.0
+temperature_ideal_max = 4.0
+temperature_max = 6.0
+rainfall_min = 75.0
+rainfall_ideal_min = 125.0
+rainfall_ideal_max = 220.0
+rainfall_max = 275.0
+minimum_land_fraction = 0.35
+land_radius = 1000.0
+terrain_distance = 1000.0
+camp_distance = 600.0
+starter_copper_units = 100.0
+starter_copper_pieces = 10.0
+challenge_surface_span = 0.0
+freshwater_distance = 800.0
+forest_distance = 1500.0
+clay_distance = 2000.0
+starter_copper_distance = 3000.0
+copper_vein_distance = 3500.0
+flux_distance = 6000.0
+tin_distance = 7000.0
+graphite_distance = 10000.0
+kaolin_distance = 12000.0
+
+[super_hard]
+min_score = 80.0
+search_radius = 12000.0
+temperature_min = -20.0
+temperature_ideal_min = -10.0
+temperature_ideal_max = -3.0
+temperature_max = 0.0
+rainfall_min = 50.0
+rainfall_ideal_min = 75.0
+rainfall_ideal_max = 200.0
+rainfall_max = 300.0
+minimum_land_fraction = 0.25
+land_radius = 1000.0
+terrain_distance = 1500.0
+camp_distance = 1000.0
+starter_copper_units = 100.0
+starter_copper_pieces = 10.0
+challenge_surface_span = 12.0
+freshwater_distance = 1500.0
+forest_distance = 2500.0
+clay_distance = 3500.0
+starter_copper_distance = 5000.0
+copper_vein_distance = 6000.0
+flux_distance = 8000.0
+tin_distance = 10000.0
+graphite_distance = 12000.0
+kaolin_distance = 12000.0
+
+[custom]
+min_score = 95.0
+search_radius = 4000.0
+temperature_min = 7.0
+temperature_ideal_min = 10.0
+temperature_ideal_max = 15.0
+temperature_max = 17.0
+rainfall_min = 220.0
+rainfall_ideal_min = 250.0
+rainfall_ideal_max = 350.0
+rainfall_max = 400.0
+minimum_land_fraction = 0.7
+land_radius = 1000.0
+terrain_distance = 250.0
+camp_distance = 160.0
+starter_copper_units = 100.0
+starter_copper_pieces = 10.0
+freshwater_distance = 160.0
+forest_distance = 350.0
+clay_distance = 300.0
+starter_copper_distance = 750.0
+copper_vein_distance = 1000.0
+flux_distance = 1200.0
+tin_distance = 2000.0
+graphite_distance = 4000.0
+kaolin_distance = 4000.0
+challenge_surface_span = 0.0

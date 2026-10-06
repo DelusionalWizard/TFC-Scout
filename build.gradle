@@ -1,0 +1,32 @@
+plugins { id 'java'; id 'net.neoforged.moddev' version '2.0.107' }
+group = 'com.cooper.terrafirmascout'
+version = '0.2.1'
+base { archivesName = 'terrafirmascout-1.21.1' }
+java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
+neoForge {
+    version = '21.1.234'
+    runs {
+        client { client(); gameDirectory = file('run/client') }
+        smokeClient {
+            client(); gameDirectory = file('run/smoke')
+            systemProperty 'terrafirmascout.smoke', 'true'
+            systemProperty 'terrafirmascout.memoryTest', providers.gradleProperty('memoryTest').getOrElse('false')
+            systemProperty 'terrafirmascout.memoryScratchOnly', providers.gradleProperty('memoryScratchOnly').getOrElse('false')
+            systemProperty 'terrafirmascout.benchmarkAll', providers.gradleProperty('benchmarkAll').getOrElse('false')
+            systemProperty 'terrafirmascout.otherSeconds', providers.gradleProperty('otherSeconds').getOrElse('60')
+            systemProperty 'terrafirmascout.smokeSeconds', providers.gradleProperty('smokeSeconds').getOrElse('90')
+            systemProperty 'terrafirmascout.reportDir', project.projectDir.parentFile.absolutePath
+        }
+    }
+    mods { terrafirmascout { sourceSet sourceSets.main } }
+}
+repositories { mavenCentral() }
+dependencies {
+    implementation files('libs/tfc-4.2.11.jar')
+    runtimeOnly files('libs/patchouli.jar')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test { useJUnitPlatform() }
+jar { exclude 'com/cooper/terrafirmascout/client/DevelopmentSmokeTest*'; exclude 'com/cooper/terrafirmascout/client/DevelopmentMemoryTest*'; from('LICENSE.txt'); from('THIRD-PARTY-NOTICES.md') }
