@@ -11,6 +11,34 @@ class VerificationTest {
         for(var c:Criterion.values()) map.put(c,new Evidence(VerificationState.VERIFIED,100,1,64,1,1,"Real placement"));
         return map;
     }
+    @Test void optionalEvidenceCannotChangeCandidateOrdering() {
+        var p=ScoutProfile.beginner();var a=complete();var b=complete();
+        a.put(Criterion.DIVERSITY,Evidence.inferred(1,1,1,"optional"));
+        b.put(Criterion.DIVERSITY,Evidence.failed("optional"));
+        assertEquals(CandidateScorer.targetDistance(a,p),CandidateScorer.targetDistance(b,p));
+        var session=new SearchSession();
+        session.offer(new SeedResult(1,0,64,0,"same",p,b));
+        session.offer(new SeedResult(2,0,64,0,"same",p,a));
+        assertEquals(1,session.best.get().seed());
+        a.put(Criterion.CLAY,new Evidence(VerificationState.VERIFIED,1,1,64,1,1,"closer required resource"));
+        assertTrue(CandidateScorer.targetDistance(a,p)<CandidateScorer.targetDistance(b,p));
+    }
+    @Test void optionalEvidenceCannotChangeScoresOrSelection() {
+        for(var q:com.cooper.terrafirmascout.profile.SeedQuality.values()) {
+            var p=ScoutProfile.preset(q); var map=complete();
+            for(var c:Criterion.values()) if(!p.requires(c)) map.remove(c);
+            var requiredOnly=new SeedResult(1,0,64,0,"same",p,map);
+            assertEquals(100,requiredOnly.score(),q.name()); assertTrue(requiredOnly.selectable("same"),q.name());
+            for(var c:Criterion.values()) if(!p.requires(c)) {
+                for(var optional:List.of(Evidence.absent("skipped"),Evidence.failed("outside limits"),
+                    new Evidence(VerificationState.VERIFIED,12000,1,64,1,0,"optional"))) {
+                    map.put(c,optional);
+                    var r=new SeedResult(1,0,64,0,"same",p,map);
+                    assertEquals(100,r.score(),q+" "+c); assertTrue(r.selectable("same"),q+" "+c);
+                }
+            }
+        }
+    }
     @Test void everyProfileRejectsEachUnverifiedRequirement() {
         for(var q:com.cooper.terrafirmascout.profile.SeedQuality.values()) {
             var p=ScoutProfile.preset(q);

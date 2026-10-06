@@ -4,10 +4,14 @@ import com.cooper.terrafirmascout.search.Evidence;
 public final class CandidateScorer {
     public static int score(Map<Criterion,Evidence> evidence,com.cooper.terrafirmascout.profile.ScoutProfile profile) {
         double earned=0,possible=0;
-        for(var c:Criterion.values()) if(profile.requires(c)||c==Criterion.DIVERSITY) {
+        for(var c:Criterion.values()) if(profile.requires(c)) {
             possible+=c.weight; var e=evidence.get(c); if(e!=null&&e.state()==VerificationState.VERIFIED) earned+=c.weight*e.quality();
         }
-        return possible==0?0:(int)Math.floor(100*earned/possible+1e-8);
+        return possible==0?(allHardVerified(evidence,profile)?100:0):(int)Math.floor(100*earned/possible+1e-8);
+    }
+    public static double targetDistance(Map<Criterion,Evidence> evidence,com.cooper.terrafirmascout.profile.ScoutProfile profile) {
+        return profile.requiredCriteria().stream().map(evidence::get)
+            .mapToDouble(e->e!=null&&Double.isFinite(e.distance())?e.distance():10000).sum();
     }
     public static boolean allHardVerified(Map<Criterion,Evidence> evidence,com.cooper.terrafirmascout.profile.ScoutProfile profile) {
         for(var c:profile.requiredCriteria()) if(evidence.get(c)==null||evidence.get(c).state()!=VerificationState.VERIFIED) return false;

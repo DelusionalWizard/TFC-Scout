@@ -124,6 +124,7 @@ public final class TFCFeatureProbe {
         }
         double ratio=(double)land/total;
         e.put(Criterion.LAND_RATIO,ratio>=profile.minimumLand()?verified(r,spawn,1,"%.2f%% non-salty, non-shore biome coverage".formatted(ratio*100)):Evidence.failed("Not enough land nearby"));
+        if(!profile.requires(Criterion.MAINLAND))return;
         var point=a.point(spawn.getX(),spawn.getZ());
         String biome=a.biome(spawn.getX(),spawn.getZ()).key().location().getPath();
         boolean extreme=biome.contains("badlands")||biome.contains("mountain")||biome.contains("canyon")||biome.contains("volcano");

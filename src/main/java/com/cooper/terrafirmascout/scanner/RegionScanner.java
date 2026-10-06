@@ -10,6 +10,7 @@ public final class RegionScanner {
         if(!point.land()||(p.requires(com.cooper.terrafirmascout.score.Criterion.MAINLAND)&&(point.island()||point.barrierIsland()||point.mountain()||point.volcanic()))) return false;
         var d=a.data(x,z); double t=d.getAverageSeaLevelTemp(x,z),r=d.getAverageRainfall(x,z);
         if(p.requires(com.cooper.terrafirmascout.score.Criterion.CLIMATE)&&(t<p.temperatureMin()-1||t>p.temperatureMax()+20||r<p.rainfallMin()-20||r>p.rainfallMax()+20)) return false;
+        if(!p.requires(com.cooper.terrafirmascout.score.Criterion.LAND_RATIO))return true;
         int land=0,total=0;
         for(int dx=-p.landRadius();dx<=p.landRadius();dx+=128) { s.checkpoint();
             for(int dz=-p.landRadius();dz<=p.landRadius();dz+=128) if((long)dx*dx+(long)dz*dz<=(long)p.landRadius()*p.landRadius()) {

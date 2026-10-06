@@ -2,7 +2,7 @@
 
 Find a TerraFirmaCraft seed that fits the way you want to play. Pick an easier start, a tough challenge, or make a wishlist of the climate, biomes, rocks and nearby resources you want.
 
-TerraFirmaScout searches seeds from the world-creation screen and checks promising results using TFC's normal world generation. Every selected requirement must be confirmed before you can use a result through Scout.
+TerraFirmaScout searches seeds from the world-creation screen and checks promising results using TFC's normal world generation. Every selected requirement must be confirmed before you can use a result through Scout. Checks you did not ask for do not affect the match score or seed selection.
 
 ## Features
 
@@ -24,9 +24,9 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 ## Current status
 
-Version **0.2.1** is experimental. A fully confirmed God-preset result and broader modpack compatibility still need further testing.
+Version **0.2.2** is experimental. A fully confirmed God-preset result and broader modpack compatibility still need further testing.
 
-This version fixes seed caches being retained on scanner threads. A focused 1,200-seed native sampling test held memory steady with zero old region generators retained after collection. Twenty-four scratch-world checks also released their levels, generators and worker threads. These checks do not measure gameplay FPS or guarantee compatibility with every modpack.
+Version 0.2.2 fixes optional checks affecting match scores and candidate ordering, and labels unused checks clearly. It also includes the seed-cache fix from 0.2.1. A focused 1,200-seed native sampling test held memory steady with zero old region generators retained after collection. Twenty-four scratch-world checks also released their levels, generators and worker threads. These checks do not measure gameplay FPS or guarantee compatibility with every modpack.
 
 See [the test report](TEST-REPORT.md) for results and limits, [preset research](RESEARCH-AND-PROFILES.md) for the starting styles, and [API notes](API-NOTES.md) for generation details.
 

@@ -123,10 +123,14 @@ public final class ScoutWorldCreationScreen extends Screen {
             int i=0;
             for(var c:Criterion.values()) {
                 var e=best.evidence().get(c); if(e==null) continue; int y=start+i++*24-scroll;
+                if(!best.profile().requires(c)) {
+                    drawClipped(g,c.label+": Not needed for this search",left,y,0x909090);
+                    continue;
+                }
                 String range=Double.isFinite(e.distance())?" — within "+bucket(e.distance()):"";
                 String loc=reveal&&e.state()==VerificationState.VERIFIED?"   X="+e.x()+" Y="+e.y()+" Z="+e.z():"";
                 int color=e.state()==VerificationState.VERIFIED?0x88ee99:e.state()==VerificationState.FAILED?0xff7777:0xffcc77;
-                drawClipped(g,c.label+(best.profile().requires(c)?"":" (not required)")+": "+stateLabel(e.state())+range+loc,left,y,color);
+                drawClipped(g,c.label+": "+stateLabel(e.state())+range+loc,left,y,color);
                 drawClipped(g,friendlyDetail(e.detail()),left+8,y+11,0xa0a0a0);
             }
             g.disableScissor();

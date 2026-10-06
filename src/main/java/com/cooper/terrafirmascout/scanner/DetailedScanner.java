@@ -21,21 +21,22 @@ public final class DetailedScanner {
         var evidence=new EnumMap<Criterion,Evidence>(Criterion.class);
         var targets=new EnumMap<Criterion,List<BlockPos>>(Criterion.class);
         var hints=new EnumMap<Criterion,Map<BlockPos,List<SeedCandidate.VeinHint>>>(Criterion.class);
-        for(var c:Criterion.values()) { evidence.put(c,Evidence.absent("Still needs checking")); targets.put(c,new ArrayList<>()); hints.put(c,new HashMap<>()); }
+        for(var c:Criterion.values()) { evidence.put(c,Evidence.absent(p.requires(c)?"Still needs checking":"Not needed for this search")); targets.put(c,new ArrayList<>()); hints.put(c,new HashMap<>()); }
         int sx=center.getX(),sz=center.getZ();
         var climate=a.data(sx,sz); double temp=climate.getAverageSeaLevelTemp(sx,sz),rain=climate.getAverageRainfall(sx,sz);
         if(p.requires(Criterion.CLIMATE)&&(temp<p.temperatureMin()||temp>p.temperatureMax()+20||rain<p.rainfallMin()||rain>p.rainfallMax())) return null;
         evidence.put(Criterion.CLIMATE,Evidence.inferred(0,sx,sz,"TFC climate %.2f C / %.2f mm; final spawn pending".formatted(temp,rain)));
         var rocks=new HashSet<String>();
-        for(int dx=-p.analysisRadius();dx<=p.analysisRadius();dx+=128) { s.checkpoint();
+        boolean sample=p.requires(Criterion.FLUX)||p.requires(Criterion.FOREST)||p.requires(Criterion.TERRAIN)||p.requires(Criterion.DIVERSITY);
+        for(int dx=-p.analysisRadius();sample&&dx<=p.analysisRadius();dx+=128) { s.checkpoint();
             for(int dz=-p.analysisRadius();dz<=p.analysisRadius();dz+=128) {
                 double dist=Math.hypot(dx,dz); if(dist>p.analysisRadius()) continue;
                 int x=sx+dx,z=sz+dz; if(!a.land(x,z)) continue;
-                var data=a.data(x,z); String rock=a.rock(x,64,z,64); rocks.add(rock);
+                var data=a.data(x,z); String rock=p.requires(Criterion.FLUX)||p.requires(Criterion.DIVERSITY)?a.rock(x,64,z,64):""; if(p.requires(Criterion.DIVERSITY))rocks.add(rock);
                 if(p.requires(Criterion.FLUX)&&FLUX.contains(rock)&&dist<=p.distance(Criterion.FLUX)) targets.get(Criterion.FLUX).add(new BlockPos(x,64,z));
                 if(p.requires(Criterion.FOREST)&&dist<=p.distance(Criterion.FOREST)&&(data.getForestType().getDensity()>=1||data.getForestType().name().equals("SPARSE"))&&!data.getForestType().isDead())
                     targets.get(Criterion.FOREST).add(new BlockPos(x,0,z));
-                if(dist<=p.terrainRadius()&&Set.of("plains","lowlands","hills","rolling_hills").contains(a.biome(x,z).key().location().getPath()))
+                if(p.requires(Criterion.TERRAIN)&&dist<=p.terrainRadius()&&Set.of("plains","lowlands","hills","rolling_hills").contains(a.biome(x,z).key().location().getPath()))
                     targets.get(Criterion.TERRAIN).add(new BlockPos(x,0,z));
             }
         }
@@ -51,7 +52,7 @@ public final class DetailedScanner {
                     targets.get(Criterion.CLAY).add(new BlockPos(x,0,z));
             }
         }
-        targets.get(Criterion.OPEN_GROUND).add(center);
+        if(p.requires(Criterion.OPEN_GROUND))targets.get(Criterion.OPEN_GROUND).add(center);
         // TFC's real vein-center algorithm, using the active configured-feature registry and its seed salts.
         // These centers remain INFERRED until real feature-stage blocks are inspected.
         var proxy=(WorldGenLevel)Proxy.newProxyInstance(WorldGenLevel.class.getClassLoader(),new Class<?>[]{WorldGenLevel.class},(o,m,args)->switch(m.getName()) {
@@ -82,7 +83,7 @@ public final class DetailedScanner {
             list.clear(); unique.values().stream().limit(2048).forEach(list::add);
             if(!list.isEmpty()) { var pos=list.getFirst(); evidence.put(c,Evidence.inferred(distance(center,pos),pos.getX(),pos.getZ(),"Looks promising; needs a closer look")); }
         }
-        evidence.put(Criterion.DIVERSITY,new Evidence(VerificationState.VERIFIED,0,sx,0,sz,Math.min(1,rocks.size()/8.0),rocks.size()+" rock types found in nearby samples"));
+        if(p.requires(Criterion.DIVERSITY))evidence.put(Criterion.DIVERSITY,new Evidence(VerificationState.VERIFIED,0,sx,0,sz,Math.min(1,rocks.size()/8.0),rocks.size()+" rock types found in nearby samples"));
         // No false resource rejection on a coarse geology sample. Missing targets get a bounded exact fallback.
         return new SeedCandidate(a,center,evidence,targets,hints);
     }
@@ -115,7 +116,7 @@ public final class DetailedScanner {
                         }
                         if(!suitable) continue;
                     }
-                    if(distance(center,pos)<=p.distance(c)){targets.get(c).add(pos);hints.get(c).computeIfAbsent(pos,k->new ArrayList<>()).add(hint);}
+                    if(p.requires(c)&&distance(center,pos)<=p.distance(c)){targets.get(c).add(pos);hints.get(c).computeIfAbsent(pos,k->new ArrayList<>()).add(hint);}
                     if(c==Criterion.COPPER_VEIN&&p.requires(Criterion.STARTER_COPPER)&&distance(center,pos)<=p.distance(Criterion.STARTER_COPPER)){
                         targets.get(Criterion.STARTER_COPPER).add(pos);hints.get(Criterion.STARTER_COPPER).computeIfAbsent(pos,k->new ArrayList<>()).add(hint);
                     }

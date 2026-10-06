@@ -105,9 +105,22 @@ public final class DevelopmentSmokeTest {
                 draft.nearbyBiomes.add(a.biome(spawn.getX(),spawn.getZ()).key().location().toString());draft.allBiomes=true;
                 draft.numbers.put("temperature_min",-20d);draft.numbers.put("temperature_ideal_min",-20d);draft.numbers.put("temperature_ideal_max",40d);draft.numbers.put("temperature_max",40d);
                 draft.numbers.put("rainfall_min",0d);draft.numbers.put("rainfall_ideal_min",0d);draft.numbers.put("rainfall_ideal_max",500d);draft.numbers.put("rainfall_max",500d);
+                draft.numbers.put("min_score",100d);
                 var custom=draft.build();var candidate=DetailedScanner.scan(a,spawn,custom,new SearchSession(),c.creation().worldgenLoadContext(),c.copyGenerator());
                 var match=new TFCFeatureProbe(c,custom,new SearchSession(),24).verify(candidate,fingerprint);
+                for(var criterion:com.cooper.terrafirmascout.score.Criterion.values())
+                    if(!custom.requires(criterion)&&!candidate.targets().get(criterion).isEmpty())throw new AssertionError("Optional targets scheduled: "+criterion);
+                if(match.score()!=100)throw new AssertionError("Optional evidence reduced the wishlist score");
                 if(!match.selectable(fingerprint))throw new AssertionError("Known seed did not meet broad climate + selected native biome specification");
+                var mc=Minecraft.getInstance();
+                mc.submit(()-> {
+                    try {
+                        var field=ScoutWorldCreationScreen.class.getDeclaredField("savedResult");field.setAccessible(true);field.set(mainScreen,match);
+                        mc.setScreen(mainScreen);
+                    }catch(Exception e){throw new RuntimeException(e);}
+                }).get();
+                Thread.sleep(1500);
+                mc.submit(()-> {try(var image=Screenshot.takeScreenshot(mc.getMainRenderTarget())){image.writeToFile(output("optional-checks-result.png"));}catch(Exception e){throw new RuntimeException(e);}}).get();
                 ResultHistory.save(match);ResultHistory.export(match,false);draft.save();
                 if(ResultHistory.load().stream().noneMatch(r->r.seed()==match.seed()&&r.profile().equals(match.profile())))throw new AssertionError("History did not round-trip");
                 Files.writeString(output("specification-verified-result.json"),ResultHistory.encode(match));

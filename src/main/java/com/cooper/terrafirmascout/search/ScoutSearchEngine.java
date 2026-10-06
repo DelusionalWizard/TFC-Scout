@@ -87,7 +87,7 @@ public final class ScoutSearchEngine implements AutoCloseable {
     }
     private void verifyBatch(List<SeedCandidate> candidates) throws Exception {
         // Best target proximity first; expensive world generation remains serial to bound memory.
-        candidates.sort(Comparator.comparingDouble(c->c.evidence().values().stream().mapToDouble(e->Double.isFinite(e.distance())?e.distance():10000).sum()));
+        candidates.sort(Comparator.comparingDouble(c->com.cooper.terrafirmascout.score.CandidateScorer.targetDistance(c.evidence(),profile)));
         for(var candidate:candidates) {
             session.checkpoint(); SeedResult result;
             try { result=new TFCFeatureProbe(context,profile,session,targetChunks).verify(candidate,fingerprint); }

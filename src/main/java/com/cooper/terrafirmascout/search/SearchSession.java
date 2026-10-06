@@ -19,6 +19,6 @@ public final class SearchSession {
     public void offer(SeedResult r) { best.accumulateAndGet(r,(a,b)->a==null||rank(b)>rank(a)?b:a); }
     private static double rank(SeedResult r) {
         return (com.cooper.terrafirmascout.score.CandidateScorer.allHardVerified(r.evidence(),r.profile())?1000:0)+r.score()
-            +r.evidence().values().stream().filter(e->e.state()==com.cooper.terrafirmascout.score.VerificationState.INFERRED).count()*0.001;
+            +r.profile().requiredCriteria().stream().map(r.evidence()::get).filter(java.util.Objects::nonNull).filter(e->e.state()==com.cooper.terrafirmascout.score.VerificationState.INFERRED).count()*0.001;
     }
 }
