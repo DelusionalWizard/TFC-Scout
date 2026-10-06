@@ -14,7 +14,8 @@ Jar: terrafirmascout-1.21.1-0.2.3.jar
 SHA-256: f557b1862dba2ac6e24293a40b9e1a399b7949c423d22c92f947404ce6b12ca5
 
 GitHub: https://github.com/DelusionalWizard/TFC-Scout
-0.2.3 release publication: pending verification. Latest confirmed earlier release: v0.2.2, commit b1ae0bd59fe2cea035b8044d1c49f9a858590e8b.
+0.2.3 publication verified: https://github.com/DelusionalWizard/TFC-Scout/releases/tag/v0.2.3
+Release/source commit: 03293e7a80ff134ff43fd5bfbf24be248661b001. GitHub Actions run 37441648308 completed successfully; uploaded jar digest matches the installed/tested build.
 
 ## Working locations
 
@@ -24,4 +25,4 @@ Git checkout: outputs/TerraFirmaScout-GitHub. Deliverable source: outputs/TerraF
 
 Full preview/modpack UI combinations and dedicated-server joining/startup remain untested. No fully confirmed God result or 100-seeds/second goal has been demonstrated. Old Hard/Super Hard accepted fixtures were invalidated by the corrected terrain checks. Zero-second smoke searches are regression checks, not throughput measurements. Focused memory checks are not gameplay FPS proof.
 
-Next: complete/verify v0.2.3 release publication, then address Cooper's next request. Do not restart from an old archive. Record actual changed files, tests, installed hash and published references when handing between tools.
+Next: address Cooper's next request; follow up on full preview/modpack UI and dedicated-server tests when in scope. Do not restart from an old archive. Record actual changed files, tests, installed hash and published references when handing between tools.

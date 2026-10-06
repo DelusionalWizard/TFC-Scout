@@ -7,6 +7,8 @@
 - Added shared project status, Codex/Claude entry instructions and a local handoff to support alternating between tools without losing changes.
 - All 19 unit tests and the menu/native-generation smoke check passed. Repeated native chunk hash stayed unchanged. Full preview-mod and dedicated-server combinations remain untested.
 
+- Installed 0.2.3 in the authorized Prism instance, backed up 0.2.2 outside mods and verified matching checksums. Published v0.2.3; release/source commit 03293e7a80ff134ff43fd5bfbf24be248661b001; workflow 37441648308 succeeded. Jar SHA-256: f557b1862dba2ac6e24293a40b9e1a399b7949c423d22c92f947404ce6b12ca5.
+
 ## 0.2.2 — 6 October 2026
 
 - Fixed optional rock variety reducing match scores and optional evidence affecting shortlist/best-result ordering.
