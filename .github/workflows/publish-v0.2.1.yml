@@ -1,0 +1,47 @@
+name: Publish TerraFirmaScout 0.2.1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v0.2.1.yml'
+      - 'release/v0.2.1/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-terrafirmascout-v0.2.1
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the release files
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Check the mod jar
+        working-directory: release/v0.2.1
+        run: sha256sum --check SHA256SUMS.txt
+      - name: Publish the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v0.2.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v0.2.1 already exists; existing assets are preserved."
+            exit 0
+          fi
+          gh release create v0.2.1 \
+            release/v0.2.1/terrafirmascout-1.21.1-0.2.1.jar \
+            release/v0.2.1/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "TerraFirmaScout 0.2.1" \
+            --notes-file release/v0.2.1/NOTES.md \
+            --prerelease
