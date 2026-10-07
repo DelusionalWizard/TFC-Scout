@@ -45,8 +45,13 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
 
     public String description() {
         if(specification.enabled())return "Your wishlist: "+specification.requirements().size()+" things to check; nearby biomes: "+(specification.allBiomes()?"ALL":"ANY")+" within "+specification.biomeRadius()+" blocks.";
-        return switch(quality()){case GOD->"A comfy mainland start, with supplies for every stage of progression.";case GOOD->"A solid start with all the key resources, and a little more travel.";
-            case AVERAGE->"The basics, flux and tin are covered. Later resources can wait.";case HARD->"A cold start. The basics are there, but you may have to travel.";case SUPER_HARD->"Freezing weather and rough ground, with the basics within reach.";};
+        return switch(quality()){case GOD->"Everything close by on a mainland start, with graphite and kaolin in reach.";case GOOD->"The same list as Dream Start, with a little more travel allowed.";
+            case AVERAGE->"Solid basics: copper, tin, flux, clay, trees and water. Late extras can wait.";case HARD->"A cold, rugged start. The essentials are there, but you may have to travel.";case SUPER_HARD->"Freezing weather and very rough ground, with the essentials within reach.";};
+    }
+    /** Name to show a player: saved seeds from older versions carry the old preset names. */
+    public String displayName() {
+        if(specification.enabled()) return "Your wishlist";
+        return name.equalsIgnoreCase("custom")?"Custom":quality().label;
     }
     public static ScoutProfile beginner() { return preset(SeedQuality.GOD); }
     public static ScoutProfile balanced() { return preset(SeedQuality.GOOD); }
@@ -63,11 +68,11 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
         };
         for(int i=0;i<keys.size();i++) d.put(keys.get(i),values[i]);
         return switch(quality) {
-            case GOD->new ScoutProfile("God",95,4000,7,10,15,17,220,250,350,400,0.7,1000,250,160,100,10,true,d,0);
-            case GOOD->new ScoutProfile("Good",90,6000,4,8,18,22,175,225,350,450,0.65,1000,350,250,100,10,true,d,0);
-            case AVERAGE->new ScoutProfile("Average",85,9000,0,5,20,26,125,175,400,475,0.50,1000,500,350,100,10,true,d,0);
-            case HARD->new ScoutProfile("Hard",80,12000,-8,-2,4,6,75,125,220,275,0.35,1000,1000,600,100,10,true,d,0);
-            case SUPER_HARD->new ScoutProfile("Super Hard",80,12000,-20,-10,-3,0,50,75,200,300,0.25,1000,1500,1000,100,10,true,d,12);
+            case GOD->new ScoutProfile("Dream Start",95,4000,7,10,15,17,220,250,350,400,0.7,1000,250,160,100,10,true,d,0);
+            case GOOD->new ScoutProfile("Easy Start",90,6000,4,8,18,22,175,225,350,450,0.65,1000,350,250,100,10,true,d,0);
+            case AVERAGE->new ScoutProfile("Fair Start",85,9000,0,5,20,26,125,175,400,475,0.50,1000,500,350,100,10,true,d,0);
+            case HARD->new ScoutProfile("Rugged Start",80,12000,-8,-2,4,6,75,125,220,275,0.35,1000,1000,600,100,10,true,d,0);
+            case SUPER_HARD->new ScoutProfile("Wilderness Start",80,12000,-20,-10,-3,0,50,75,200,300,0.25,1000,1500,1000,100,10,true,d,12);
         };
     }
 }

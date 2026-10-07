@@ -88,6 +88,30 @@ class VerificationTest {
         var t=new Thread(()-> { try { session.checkpoint(); } catch(java.util.concurrent.CancellationException e) { thrown.set(true); } });
         t.start(); session.cancel(); t.join(2000); assertFalse(t.isAlive()); assertTrue(thrown.get());
     }
+    @Test void earlyStopBoundNeverUnderestimatesAPartialResult() {
+        // Whatever else is verified, the bound must be at least the real rank, or a result that would have been shown could be skipped.
+        for(var q:com.cooper.terrafirmascout.profile.SeedQuality.values()) {
+            var p=ScoutProfile.preset(q); var required=List.copyOf(p.requiredCriteria());
+            for(int mask=1;mask<(1<<Math.min(required.size(),10));mask++) {
+                var map=complete(); var missed=EnumSet.noneOf(Criterion.class);
+                for(int i=0;i<required.size()&&i<10;i++) if((mask>>i&1)!=0) { map.put(required.get(i),Evidence.absent("not found")); missed.add(required.get(i)); }
+                var session=new SearchSession(); session.offer(new SeedResult(1,0,64,0,"f",p,map));
+                // Rows still to be checked count as unconfirmed too, so the bound must hold for those as well.
+                assertTrue(CandidateScorer.maxPossibleRank(map,p,missed)>=session.bestRank(),q+" "+missed);
+            }
+        }
+    }
+    @Test void earlyStopOnlyWhenBestResultIsAtLeastAsGood() {
+        var p=ScoutProfile.beginner(); var empty=new SearchSession();
+        var map=complete(); var first=p.requiredCriteria().iterator().next(); map.put(first,Evidence.absent("not found"));
+        var missed=EnumSet.of(first);
+        assertFalse(CandidateScorer.maxPossibleRank(map,p,missed)<empty.bestRank(),"nothing shown yet: never skip");
+        var confirmed=new SearchSession(); confirmed.offer(new SeedResult(1,0,64,0,"f",p,complete()));
+        assertTrue(CandidateScorer.maxPossibleRank(map,p,missed)<confirmed.bestRank(),"a confirmed result beats any seed with a miss");
+        var weak=new SearchSession(); var weakMap=complete(); for(var c:p.requiredCriteria()) weakMap.put(c,Evidence.absent("none"));
+        weak.offer(new SeedResult(2,0,64,0,"f",p,weakMap));
+        assertFalse(CandidateScorer.maxPossibleRank(map,p,missed)<weak.bestRank(),"a better partial could still be shown");
+    }
     @Test void balancedAndBeginnerKeepAllResourceDistancesInsideSearchRadius() {
         for(var p:List.of(ScoutProfile.beginner(),ScoutProfile.balanced())) p.distances().values().forEach(d->assertTrue(d<=p.radius()));
     }

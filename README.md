@@ -8,10 +8,13 @@ Scout is available from the **World** tab in Create World.
 
 ## Features
 
-- God, Good, Average, Hard and Super Hard starting presets.
+- Five starting presets, from easiest to harshest: Dream Start, Easy Start, Fair Start, Rugged Start and Wilderness Start.
 - Custom requirements for resources, travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
-- Pause, resume and stop controls.
-- Saved matching seeds and exported reports.
+- Pause, resume and stop controls, with Pausing and Stopping shown while a check in progress finishes.
+- A Results screen with every confirmed match from the search, plus close calls (seeds that missed exactly one check) you can give a closer look.
+- Check any seed (a number or text) against your choices, and copy a seed or a plain-text report to share.
+- Options for search speed, stopping after a number of matches or minutes, and a sound when a match is found. Your choices are remembered.
+- Saved matching seeds, with sorting, short notes and delete, and exported reports.
 - Hidden resource coordinates until you choose Reveal.
 
 ## Requirements
@@ -26,7 +29,7 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 ## Current status
 
-Version **0.2.3** is experimental. A fully confirmed God-preset result and broader modpack compatibility still need further testing.
+Version **0.2.5** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
 Version 0.2.2 fixes optional checks affecting match scores and candidate ordering, and labels unused checks clearly. It also includes the seed-cache fix from 0.2.1. A focused 1,200-seed native sampling test held memory steady with zero old region generators retained after collection. Twenty-four scratch-world checks also released their levels, generators and worker threads. These checks do not measure gameplay FPS or guarantee compatibility with every modpack.
 

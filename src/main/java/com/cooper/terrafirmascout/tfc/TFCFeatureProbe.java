@@ -64,6 +64,7 @@ public final class TFCFeatureProbe {
             }
             var inspected=new HashMap<Long,ChunkAccess>();
             var pieces=new HashSet<BlockPos>(); int[] copperUnits={0};
+            var missed=EnumSet.noneOf(Criterion.class);
             for(var criterion:List.of(Criterion.FRESHWATER,Criterion.TERRAIN,Criterion.OPEN_GROUND,Criterion.FOREST,Criterion.CLAY,
                 Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN)) {
                 if(!profile.requires(criterion)) { evidence.put(criterion,Evidence.absent("Not needed for this search")); continue; }
@@ -86,6 +87,13 @@ public final class TFCFeatureProbe {
                 }
                 if(evidence.get(criterion).state()!=VerificationState.VERIFIED)
                     evidence.put(criterion,Evidence.absent("Not found in "+Math.min(tested,targetBudget)+" chunks checked; this resource is still unconfirmed"));
+                if(evidence.get(criterion).state()!=VerificationState.VERIFIED) {
+                    // A bounded miss stays unconfirmed, so this seed can no longer be selected. After a second miss (one miss may still be a close call) stop once the rest
+                    // cannot lift it above the best result already shown; otherwise keep going so the best partial stays accurate.
+                    missed.add(criterion);
+                    if(CandidateScorer.remainingChecksCannotMatter(evidence,profile,missed,session.bestRank()))
+                        return new SeedResult(adapter.seed,spawn.getX(),spawn.getY(),spawn.getZ(),fingerprint,profile,evidence);
+                }
             }
             var kaolin=evidence.get(Criterion.KAOLIN);
             if(profile.requires(Criterion.CONNECTIVITY)&&kaolin.state()==VerificationState.VERIFIED) {

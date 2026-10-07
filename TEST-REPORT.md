@@ -1,5 +1,7 @@
 # Test notes - 6 October 2026
 
+> Preset names changed in 0.2.5: God = Dream Start, Good = Easy Start, Average = Fair Start, Hard = Rugged Start, Super Hard = Wilderness Start. Older entries below keep the old names. The preset ids in the config file (`god`, `good`, `average`, `hard`, `super_hard`) did not change.
+
 
 
 Tests ran in separate development instances on Windows 11, Java 21.0.7, Minecraft 1.21.1, NeoForge 21.1.234, TFC 4.2.11 and Patchouli 1.21.1-93-NEOFORGE.

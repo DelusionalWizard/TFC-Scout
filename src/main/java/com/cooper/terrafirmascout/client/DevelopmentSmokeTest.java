@@ -43,7 +43,7 @@ public final class DevelopmentSmokeTest {
                     catch(Exception ex) { ex.printStackTrace(); }
                     mc.stop();
                 }));
-            } else if(state==2&&!(mc.screen instanceof ScoutWorldCreationScreen)&&!(mc.screen instanceof SpecificationScreen)) { mc.setScreen(new ScoutWorldCreationScreen(creationScreen)); }
+            } else if(state==2&&!(mc.screen instanceof ScoutWorldCreationScreen)&&!(mc.screen instanceof SpecificationScreen)&&!(mc.screen instanceof ScoutOptionsScreen)&&!(mc.screen instanceof ScoutResultsScreen)&&!(mc.screen instanceof HistoryScreen)&&!(mc.screen instanceof NoteScreen)) { mc.setScreen(new ScoutWorldCreationScreen(creationScreen)); }
             else if(state==2) {
                 if(benchmarkEngine!=null&&mc.screen instanceof ScoutWorldCreationScreen) {
                     var field=ScoutWorldCreationScreen.class.getDeclaredField("engine"); field.setAccessible(true); field.set(mc.screen,benchmarkEngine);
@@ -105,6 +105,7 @@ public final class DevelopmentSmokeTest {
         try {
             checkWorldTabs();
             if(Boolean.getBoolean("terrafirmascout.memoryTest")) DevelopmentMemoryTest.run(c);
+            if(System.getenv("SCOUT_SLOW_SEED_TEST")!=null) slowSeedTest(c);
             long seed=123456789L; var a=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
             var b=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
             var spawn=a.spawnBiome(); if(!spawn.equals(b.spawnBiome())) throw new AssertionError("spawn biome differs");
@@ -174,6 +175,7 @@ public final class DevelopmentSmokeTest {
                         throw new AssertionError("Mismatching spawn biome was not rejected");
                 }
                 benchmark+="Exact spawn biome, surface rock, forest type/density and elevation filters; wrong-biome rejection: PASSED\n";
+                benchmark+=DevelopmentSmokeTestQol.run(c,fingerprint,mainScreen,e->benchmarkEngine=e,Path.of(System.getProperty("terrafirmascout.reportDir")));
 
                 if(Integer.getInteger("terrafirmascout.otherSeconds",60)>0)for(var check:Map.of(3589375073047842521L,ScoutProfile.preset(SeedQuality.GOOD),-7538705592502360260L,ScoutProfile.preset(SeedQuality.HARD)).entrySet()) {
                     var nativeAdapter=new TFCWorldgenAdapter(check.getKey(),c.settings(),c.biomes());var session=new SearchSession();
@@ -195,13 +197,48 @@ public final class DevelopmentSmokeTest {
     private static String benchmark(SearchWorldContext c,ScoutProfile profile,int seconds)throws Exception {
         var search=new ScoutSearchEngine(c,profile);benchmarkEngine=search;search.start();long deadline=System.nanoTime()+seconds*1_000_000_000L;long started=System.nanoTime();
         while(!search.session.finished&&!search.session.paused&&System.nanoTime()<deadline)Thread.sleep(200);
-        search.close();while(!search.session.finished)Thread.sleep(200);
+        search.close();while(!search.session.finished)Thread.sleep(200);long stoppedAt=System.nanoTime();
+        // Verifier, coordinator and scratch generation threads must be gone once a search reports it finished. A scan worker may
+        // still be inside TFC's uninterruptible region generation (minutes on rare seeds); it must exit by itself, which is awaited here.
+        long leaked,grace=System.nanoTime()+5_000_000_000L;
+        do { leaked=countScoutThreads("verifier","coordinator","chunk generator"); if(leaked==0)break; Thread.sleep(100); } while(System.nanoTime()<grace);
+        if(leaked!=0)throw new AssertionError(profile.name()+": "+leaked+" TerraFirmaScout threads still alive after the search finished");
+        long stragglerStart=System.nanoTime(),stragglerDeadline=stragglerStart+900_000_000_000L; boolean straggled=countScoutThreads("region scanner")>0;
+        while(countScoutThreads("region scanner")>0&&System.nanoTime()<stragglerDeadline)Thread.sleep(500);
+        if(countScoutThreads("region scanner")>0)throw new AssertionError(profile.name()+": a scan worker never exited after the search finished");
+        if(straggled)System.out.println(profile.name()+": a scan worker outlived the search by "+(System.nanoTime()-stragglerStart)/1_000_000_000L+"s and then cleaned up on its own");
         if(!search.session.error.isEmpty())throw new AssertionError(profile.name()+": "+search.session.error);
-        String report=profile.name()+" ("+seconds+"s budget): tested="+search.session.tested+", pass1="+search.session.pass1+", pass2="+search.session.pass2+", qualifying="+search.session.verified+", elapsed="+(System.nanoTime()-started)/1e9+"s\n";
+        String report=profile.name()+" ("+seconds+"s budget): tested="+search.session.tested+", pass1="+search.session.pass1+", pass2="+search.session.pass2+", qualifying="+search.session.verified+", closeCalls="+search.session.closeCalls().size()+", skippedSlow="+search.session.skippedSlow+", elapsed="+(stoppedAt-started)/1e9+"s\n";
         var best=search.session.best.get();if(best!=null){report+="Best: "+best.status()+", score="+best.score()+", seed="+best.seed()+"\n";
             for(var criterion:best.profile().requiredCriteria())report+=criterion+": "+best.evidence().get(criterion)+"\n";
             if(best.selectable(search.fingerprint))Files.writeString(output("verified-"+profile.quality().id+".json"),ResultHistory.encode(best));}
         System.out.println(report);Files.writeString(output("benchmark-"+profile.quality().id+".txt"),report);return report;
+    }
+    /** Opt-in (env SCOUT_SLOW_SEED_TEST). Seed 6289961475451757407 spends about 40 s in TFC river generation during the spawn search. */
+    private static void slowSeedTest(SearchWorldContext c) throws Exception {
+        long slow=6289961475451757407L; var expected=new BlockPos(1060,0,-740); var log=new StringBuilder("Slow-seed abandon test (seed "+slow+")\n");
+        long t0=System.nanoTime(); var first=new TFCWorldgenAdapter(slow,c.settings(),c.biomes());
+        com.cooper.terrafirmascout.tfc.ScanLimit.begin(3_000_000_000L,()->false);
+        try { first.spawnBiome(); throw new AssertionError("time limit did not abandon the slow seed"); }
+        catch(com.cooper.terrafirmascout.tfc.ScanLimit.Abandoned e) { log.append("abandoned by 3 s limit after ").append((System.nanoTime()-t0)/1_000_000).append(" ms\n"); }
+        finally { com.cooper.terrafirmascout.tfc.ScanLimit.end(); first.releaseThreadCaches(); }
+        long limitMs=(System.nanoTime()-t0)/1_000_000; if(limitMs>15_000) throw new AssertionError("abandon took "+limitMs+" ms");
+        var cancel=new java.util.concurrent.atomic.AtomicBoolean(); var second=new TFCWorldgenAdapter(slow,c.settings(),c.biomes()); t0=System.nanoTime();
+        var timer=new Thread(()->{ try { Thread.sleep(2000); } catch(InterruptedException e) {} cancel.set(true); }); timer.start();
+        com.cooper.terrafirmascout.tfc.ScanLimit.begin(600_000_000_000L,cancel::get);
+        try { second.spawnBiome(); throw new AssertionError("cancel did not stop the scan"); }
+        catch(com.cooper.terrafirmascout.tfc.ScanLimit.Abandoned e) { log.append("stopped by cancel after ").append((System.nanoTime()-t0)/1_000_000).append(" ms\n"); }
+        finally { com.cooper.terrafirmascout.tfc.ScanLimit.end(); second.releaseThreadCaches(); }
+        if((System.nanoTime()-t0)/1_000_000>15_000) throw new AssertionError("cancel took too long");
+        // Abandoning must not change what TFC generates: a fresh run with no scope still gives the spawn recorded before the change.
+        t0=System.nanoTime(); var fresh=new TFCWorldgenAdapter(slow,c.settings(),c.biomes()); var spawn=fresh.spawnBiome(); fresh.releaseThreadCaches();
+        log.append("unrestricted run: spawn ").append(spawn).append(" in ").append((System.nanoTime()-t0)/1_000_000).append(" ms\n");
+        if(!spawn.equals(expected)) throw new AssertionError("spawn changed after an abandoned run: "+spawn);
+        Files.writeString(output("profiling/slow-seed-test.txt"),log); System.out.println(log);
+    }
+    private static long countScoutThreads(String... parts) {
+        return Thread.getAllStackTraces().keySet().stream().filter(t->t.isAlive()&&t.getName().startsWith("TerraFirmaScout ")
+            &&java.util.Arrays.stream(parts).anyMatch(t.getName()::contains)).count();
     }
     private static String hash(ChunkAccess chunk) throws Exception {
         var digest=MessageDigest.getInstance("SHA-256");

@@ -6,11 +6,31 @@ import net.neoforged.fml.loading.FMLPaths;
 /** History is separate from exports: public reports hide resource coordinates by default. */
 public final class ResultHistory {
     private static final Gson JSON=new GsonBuilder().registerTypeAdapter(Evidence.class,new EvidenceJson()).serializeNulls().setPrettyPrinting().create();
-    private static Path root(){return FMLPaths.GAMEDIR.get().resolve("terrafirmascout");}
+    private static volatile Path rootOverride;
+    /** Tests and development harnesses point history somewhere else; the game uses its own folder. */
+    public static void useRoot(Path path){rootOverride=path;}
+    public static Path root(){return rootOverride!=null?rootOverride:FMLPaths.GAMEDIR.get().resolve("terrafirmascout");}
+    public static Path fileFor(SeedResult result){return root().resolve("history").resolve(result.seed()+"-"+Integer.toHexString(result.profile().hashCode())+"-"+result.fingerprint().substring(0,12)+".json");}
+    private static Path notesFile(){return root().resolve("history-notes.json");}
+    private static JsonObject readNotes(){try{var f=notesFile();if(Files.isRegularFile(f))return JsonParser.parseString(Files.readString(f)).getAsJsonObject();}catch(Exception ignored){}return new JsonObject();}
+    /** A short player note for a saved seed, or an empty string. Notes live beside the saved results, not inside them. */
+    public static String note(SeedResult result){var n=readNotes().get(fileFor(result).getFileName().toString());return n==null||!n.isJsonPrimitive()?"":n.getAsString();}
+    public static void setNote(SeedResult result,String note) throws Exception {
+        var notes=readNotes();var key=fileFor(result).getFileName().toString();var text=note==null?"":note.strip();
+        if(text.length()>60)text=text.substring(0,60);
+        if(text.isEmpty())notes.remove(key);else notes.addProperty(key,text);
+        Files.createDirectories(root());Files.writeString(notesFile(),JSON.toJson(notes));
+    }
+    /** Removes one saved seed (and its note). Only files inside the history folder are ever touched. */
+    public static void delete(SeedResult result) throws Exception {
+        var file=fileFor(result);if(!file.normalize().startsWith(root().resolve("history").normalize()))throw new IllegalArgumentException("Not a saved seed");
+        Files.deleteIfExists(file);
+        var notes=readNotes();if(notes.remove(file.getFileName().toString())!=null){Files.writeString(notesFile(),JSON.toJson(notes));}
+    }
     public static Path save(SeedResult result) throws Exception {
         if(!result.selectable(result.fingerprint()))throw new IllegalArgumentException("Only qualifying verified results can be saved");
         var dir=root().resolve("history");Files.createDirectories(dir);
-        var path=dir.resolve(result.seed()+"-"+Integer.toHexString(result.profile().hashCode())+"-"+result.fingerprint().substring(0,12)+".json");
+        var path=fileFor(result);
         var temporary=Files.createTempFile(dir,"result-",".tmp");
         try{Files.writeString(temporary,JSON.toJson(result));Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING);}finally{Files.deleteIfExists(temporary);}
         return path;
