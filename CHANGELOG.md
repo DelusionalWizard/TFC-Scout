@@ -2,7 +2,7 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.6 remains published.
 
-## 0.2.7 (8 October 2026, not published)
+## 0.2.7 (8 October 2026, published as prerelease)
 - Idea taken from a review of the old TFC Seed Maker (GPLv3, TFC 1.7.10; no code copied, its crops item was never finished): two new optional wishlist checks, never part of the presets.
 - **Crops:** counts the crops whose climate range (read from the loaded data, so addon crops count) contains the yearly average temperature at the final spawn and which rain alone does not make too wet. It needs at least 10 crops, or half of all loaded crops if fewer exist. The result row lists some of them.
 - **Farmland moisture (1.21.1 only):** the middle of TFC's rain-driven farmland hydration (minimum and maximum rainfall hydration in the chunk data) at spawn must be 30-80%, so crops grow without irrigating. Groundwater was checked and is not used by farmland in TFC 4.2.11, so it is not part of this check.
