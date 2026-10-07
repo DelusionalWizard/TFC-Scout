@@ -24,6 +24,8 @@ import net.minecraft.world.level.chunk.*;
 @EventBusSubscriber(modid="terrafirmascout",value=Dist.CLIENT)
 public final class DevelopmentSmokeTest {
     private static int state,ticks;
+    /** Lets the screenshot tool keep the state machine from swapping the screen it is showing. */
+    static void holdState(int value) { state=value; }
     private static CreateWorldScreen creationScreen; private static ScoutWorldCreationScreen mainScreen;
     private static volatile ScoutSearchEngine benchmarkEngine;
     @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
@@ -105,6 +107,7 @@ public final class DevelopmentSmokeTest {
         try {
             checkWorldTabs();
             if(Boolean.getBoolean("terrafirmascout.memoryTest")) DevelopmentMemoryTest.run(c);
+            if(System.getenv("SCOUT_SHOTS")!=null) { DevelopmentSmokeTestShots.run(mainScreen,creationScreen,Path.of(System.getProperty("terrafirmascout.reportDir")).resolve("screenshots")); return; }
             if(System.getenv("SCOUT_SLOW_SEED_TEST")!=null) slowSeedTest(c);
             long seed=123456789L; var a=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
             var b=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());

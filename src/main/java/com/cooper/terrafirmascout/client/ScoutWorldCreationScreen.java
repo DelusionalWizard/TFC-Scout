@@ -105,7 +105,7 @@ public final class ScoutWorldCreationScreen extends Screen {
         if(running()||working()) return;
         try {
             savePrefs(); savedResult=null; announcedMatches=0;
-            engine=new ScoutSearchEngine(capture(),selectedProfile(),limits()); engine.start(); message="Looking for a start that matches your choices.";
+            engine=new ScoutSearchEngine(capture(),selectedProfile(),limits()); engine.start(); message="";
             com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: search started ({}, speed {}, stop after {} matches / {} min)",profileName(),prefs.speed,prefs.stopAfterMatches,prefs.stopAfterMinutes);
         } catch(Exception e) { message="Could not start: "+e.getMessage(); }
     }
