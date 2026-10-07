@@ -2,7 +2,7 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.6 remains published.
 
-## 0.2.7 for Minecraft 1.20.1 / Forge (8 October 2026, not published)
+## 0.2.7 for Minecraft 1.20.1 / Forge (8 October 2026, published as prerelease)
 - Idea taken from a review of the old TFC Seed Maker (GPLv3, TFC 1.7.10; no code copied, its crops item was never finished): two new optional wishlist checks, never part of the presets.
 - **Crops:** counts the crops whose climate range (read from the loaded data, so addon crops count) contains the yearly average temperature at the final spawn. It needs at least 10 crops, or half of all loaded crops if fewer exist. The result row lists some of them.
 - **Farmland moisture is not offered on this build:** TFC 3.2 farmland moisture comes only from nearby water, and the chunk data has no rain hydration. Use the River, Lake and Coast checks for irrigation.

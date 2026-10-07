@@ -1,6 +1,6 @@
 # Current project status
 
-**0.2.7 for 1.20.1 (8 October 2026, Claude Code, not yet pushed or published): Crops wishlist check added (no Farmland moisture on 3.2). Tests that ran: 41 JUnit tests; real Forge launches of the harness build passed with plain TFC + Patchouli (Crops 8/8 seeds confirmed) and with the full TerraFirmaGreg Modern 0.13.10 pack (Crops 8/8; river, lake, coast as before). Release jars not yet built.**
+**0.2.7 for 1.20.1 (8 October 2026, Claude Code, pushed and published as GitHub prerelease): Crops wishlist check added (no Farmland moisture on 3.2). Tests that ran: 41 JUnit tests; real Forge launches of the harness build passed with plain TFC + Patchouli (Crops 8/8 seeds confirmed) and with the full TerraFirmaGreg Modern 0.13.10 pack (Crops 8/8; river, lake, coast as before). Release jars not yet built.**
 
 **Older GitHub releases deleted (8 October 2026, at Cooper's request): v0.2.1, v0.2.2, v0.2.3, v0.2.5 and v0.2.5-1.20.1, with their tags. Only v0.2.6 and v0.2.6-1.20.1 remain on GitHub; older release descriptions in these records refer to deleted releases. Branches and source history are unchanged.**
 

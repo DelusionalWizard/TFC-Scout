@@ -33,7 +33,7 @@ Individual addons were tested only as part of that pack, not one at a time. Othe
 ## Features
 
 - Five starting presets, from easiest to harshest: Dream Start, Easy Start, Fair Start, Rugged Start and Wilderness Start.
-- Custom requirements for resources (including river, lake and coast or ocean), travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
+- Custom requirements for resources (including river, lake, coast or ocean and crop suitability), travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
 - Pause, resume and stop controls, with Pausing and Stopping shown while a check in progress finishes.
 - A Results screen with every confirmed match from the search, plus close calls (seeds that missed exactly one check) you can give a closer look.
 - Check any seed (a number or text) against your choices, and copy a seed or a plain-text report to share.
@@ -48,7 +48,7 @@ Minecraft **1.21.1**, NeoForge **21.1.234 or newer**, TerraFirmaCraft **4.2.11**
 
 ## Download
 
-Download jars from the [GitHub Releases page](https://github.com/DelusionalWizard/TFC-Scout/releases): `v0.2.6` for Minecraft 1.21.1 (NeoForge) and `v0.2.6-1.20.1` for Minecraft 1.20.1 (Forge). Release files are not kept in the repository, and older releases have been removed.
+Download jars from the [GitHub Releases page](https://github.com/DelusionalWizard/TFC-Scout/releases): `v0.2.7` for Minecraft 1.21.1 (NeoForge) and `v0.2.7-1.20.1` for Minecraft 1.20.1 (Forge). Release files are not kept in the repository, and older releases have been removed.
 
 ## Getting started
 
