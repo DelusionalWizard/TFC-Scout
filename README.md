@@ -9,17 +9,22 @@ Scout is available from the **World** tab in Create World.
 ## Features
 
 - Five starting presets, from easiest to harshest: Dream Start, Easy Start, Fair Start, Rugged Start and Wilderness Start.
-- Custom requirements for resources, travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
+- Custom requirements for resources (including river, lake and coast or ocean), travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
 - Pause, resume and stop controls, with Pausing and Stopping shown while a check in progress finishes.
 - A Results screen with every confirmed match from the search, plus close calls (seeds that missed exactly one check) you can give a closer look.
 - Check any seed (a number or text) against your choices, and copy a seed or a plain-text report to share.
 - Options for search speed, stopping after a number of matches or minutes, and a sound when a match is found. Your choices are remembered.
 - Saved matching seeds, with sorting, short notes and delete, and exported reports.
 - Hidden resource coordinates until you choose Reveal.
+- The result shows the forest type and tree density at spawn.
 
 ## Requirements
 
 Minecraft **1.21.1**, NeoForge **21.1.234 or newer**, TerraFirmaCraft **4.2.11**, and Java **21**. TFC itself requires Patchouli; Scout adds no extra mod dependencies to a working TFC installation.
+
+## Download
+
+Download jars from the [GitHub Releases page](https://github.com/DelusionalWizard/TFC-Scout/releases): `v0.2.6` for Minecraft 1.21.1 (NeoForge) and `v0.2.6-1.20.1` for Minecraft 1.20.1 (Forge). Release files are not kept in the repository, and older releases have been removed.
 
 ## Getting started
 
@@ -31,7 +36,7 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 Version **0.2.6** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
-Version 0.2.2 fixes optional checks affecting match scores and candidate ordering, and labels unused checks clearly. It also includes the seed-cache fix from 0.2.1. A focused 1,200-seed native sampling test held memory steady with zero old region generators retained after collection. Twenty-four scratch-world checks also released their levels, generators and worker threads. These checks do not measure gameplay FPS or guarantee compatibility with every modpack.
+**What is new in 0.2.6:** the single Freshwater requirement is replaced by separate, optional River, Lake and Coast or ocean checks, each with its own distance (the presets no longer require water). The result screen shows the forest type and tree density at spawn. Saved seeds and wishlists from older versions still load. See [the changelog](CHANGELOG.md).
 
 See [the test report](TEST-REPORT.md) for results and limits, [preset research](RESEARCH-AND-PROFILES.md) for the starting styles, and [API notes](API-NOTES.md) for generation details.
 
