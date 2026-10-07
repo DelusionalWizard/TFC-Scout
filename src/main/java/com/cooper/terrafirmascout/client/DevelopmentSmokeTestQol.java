@@ -92,6 +92,22 @@ final class DevelopmentSmokeTestQol {
         log.append("    worst: pause ").append(worstPause).append(" ms, stop ").append(worst).append(" ms\n");
         return log.toString();
     }
+    /** The wishlist's spawn-rock choices come from the real block registry: real rocks stay, slab/stairs/wall variants go. */
+    private static String spawnRockChoices() {
+        var rocks=RockChoices.spawnRocks(net.minecraft.core.registries.BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")).map(id->id.getPath()).toList());
+        for(var name:List.of("granite","diorite","basalt","limestone","chalk","chert","claystone")) if(!rocks.contains(name)) throw new AssertionError("Spawn rock choices lost a real rock: "+name);
+        for(var name:rocks) if(name.endsWith("_slab")||name.endsWith("_stairs")||name.endsWith("_wall")) throw new AssertionError("Spawn rock choices still offer a variant: "+name);
+        return "  spawn rock choices: "+rocks.size()+" rocks ("+String.join(", ",rocks.subList(0,Math.min(8,rocks.size())))+", ...), no slab, stairs or wall variants\n";
+    }
+    /** The wishlist's biome choices come from the world's own biome source: only TFC biomes, no vanilla ones. */
+    private static String biomeChoices(SearchWorldContext c) {
+        var offered=BiomeChoices.forWorld(c.creation());
+        int registered=c.creation().worldgenLoadContext().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).keySet().size();
+        if(offered.isEmpty()) throw new AssertionError("The biome picker offers no biomes");
+        for(var id:offered) if(!id.startsWith("tfc:")) throw new AssertionError("The biome picker offers a non-TFC biome: "+id);
+        if(offered.size()>=registered) throw new AssertionError("The biome picker was not filtered ("+offered.size()+" of "+registered+")");
+        return "  biome choices: "+offered.size()+" TFC biomes offered out of "+registered+" registered; no vanilla biomes ("+String.join(", ",offered.subList(0,Math.min(5,offered.size())))+", ...)\n";
+    }
     /** The buttons a player presses, in the order a player presses them: search, pause, stop, results. */
     private static String uiFlow(ScoutWorldCreationScreen mainScreen,Path out) throws Exception {
         var mc=Minecraft.getInstance(); var log=new StringBuilder("  UI flow\n");
@@ -148,6 +164,8 @@ final class DevelopmentSmokeTestQol {
     static String run(SearchWorldContext c,String fingerprint,ScoutWorldCreationScreen mainScreen,Consumer<ScoutSearchEngine> showEngine,Path out) throws Exception {
         var report=new StringBuilder("Quality-of-life checks\n"); var mc=Minecraft.getInstance(); var easy=easyProfile();
         report.append(uiFlow(mainScreen,out));
+        report.append(spawnRockChoices());
+        report.append(biomeChoices(c));
         report.append(stopLatency(c));
 
         // Text seeds follow Minecraft's own rule, and a typed seed can be checked on its own.

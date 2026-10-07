@@ -54,9 +54,8 @@ public final class DevelopmentSmokeTest {
                 boolean suite=Boolean.getBoolean("terrafirmascout.benchmarkAll");
                 if(ticks==12||!suite&&ticks==300)try(var image=Screenshot.takeScreenshot(mc.getMainRenderTarget())){image.writeToFile(output(ticks==12?"world-creation-screen.png":"world-search-progress.png"));}
                 if(suite&&ticks==13){
-                    var registry=creationScreen.getUiState().getSettings().worldgenLoadContext().registryOrThrow(Registries.BIOME);
-                    var biomes=registry.keySet().stream().map(Object::toString).sorted().toList();
-                    var rocks=BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")&&id.getPath().startsWith("rock/raw/")).map(id->id.getPath().replace("rock/raw/","")).sorted().toList();
+                    var biomes=BiomeChoices.forWorld(creationScreen.getUiState().getSettings());
+                    var rocks=BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")).map(id->id.getPath()).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(),RockChoices::spawnRocks));
                     mc.setScreen(new SpecificationScreen(mainScreen,SpecificationDraft.fromPreset(ScoutProfile.beginner()),biomes,rocks,d->{}));
                 }
                 if(suite&&ticks>=33&&ticks<=133&&ticks%20==13&&mc.screen instanceof SpecificationScreen screen){

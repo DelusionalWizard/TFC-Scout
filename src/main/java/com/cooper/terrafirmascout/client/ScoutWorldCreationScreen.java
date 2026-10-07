@@ -37,8 +37,8 @@ public final class ScoutWorldCreationScreen extends Screen {
             try {
                 if(specification==null)specification=SpecificationDraft.load(selectedProfile());
                 var draft=new com.google.gson.GsonBuilder().create().fromJson(new com.google.gson.GsonBuilder().create().toJson(specification),SpecificationDraft.class);
-                var biomes=parent.getUiState().getSettings().worldgenLoadContext().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).keySet().stream().map(Object::toString).sorted().toList();
-                var rocks=net.minecraft.core.registries.BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")&&id.getPath().startsWith("rock/raw/")).map(id->id.getPath().replace("rock/raw/","")).sorted().toList();
+                var biomes=BiomeChoices.forWorld(parent.getUiState().getSettings());
+                var rocks=net.minecraft.core.registries.BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")).map(id->id.getPath()).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(),RockChoices::spawnRocks));
                 minecraft.setScreen(new SpecificationScreen(this,draft,biomes,rocks,values->{specification=values;preset="specification";}));
             }catch(Exception e){message="Could not open your settings: "+e.getMessage();}
         }).bounds(left+half+8,32,Math.max(60,half-92),20).build());

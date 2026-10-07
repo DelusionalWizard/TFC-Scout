@@ -123,6 +123,15 @@ class QualityOfLifeTest {
         var unconfirmed=ReportText.text(withMisses(5,VerificationState.INFERRED,Criterion.TIN),false); assertTrue(unconfirmed.contains("Tin: Not confirmed")); assertTrue(unconfirmed.contains("Not confirmed yet"));
     }
 
+    // --- spawn rock choices ---
+    @Test void spawnRockPickerKeepsRocksAndDropsSlabsStairsAndWalls() {
+        var paths=List.of("rock/raw/andesite","rock/raw/andesite_slab","rock/raw/andesite_stairs","rock/raw/andesite_wall","rock/raw/basalt","rock/raw/chalk","rock/raw/chalk_wall","rock/raw/claystone",
+            "rock/bricks/andesite","rock/hardened/basalt","dirt/silt","rock/raw/");
+        assertEquals(List.of("andesite","basalt","chalk","claystone"),com.cooper.terrafirmascout.profile.RockChoices.spawnRocks(paths));
+        assertEquals(List.of("odd_wall"),com.cooper.terrafirmascout.profile.RockChoices.spawnRocks(List.of("rock/raw/odd_wall")),"a rock that only looks like a variant is kept when no base rock exists");
+        assertEquals(List.of(),com.cooper.terrafirmascout.profile.RockChoices.spawnRocks(List.of()));
+    }
+
     // --- saved seeds: notes, delete, order ---
     @Test void savedSeedsCanBeNotedAndDeletedWithoutTouchingOthers(@TempDir Path dir) throws Exception {
         ResultHistory.useRoot(dir);

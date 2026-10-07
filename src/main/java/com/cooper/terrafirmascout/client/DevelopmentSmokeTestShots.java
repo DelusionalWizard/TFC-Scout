@@ -78,8 +78,8 @@ final class DevelopmentSmokeTestShots {
             ResultHistory.setNote(search.session.matches().getFirst(),"flat land east of the river");
             press(mc,mainScreen,"Saved seeds"); Thread.sleep(1200); shot(mc,out,"08-saved-seeds.png"); mc.submit(()->mc.screen.onClose()).get(); Thread.sleep(600);
             // 6. The wishlist editor.
-            var biomes=creation.getUiState().getSettings().worldgenLoadContext().registryOrThrow(Registries.BIOME).keySet().stream().map(Object::toString).sorted().toList();
-            var rocks=BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")&&id.getPath().startsWith("rock/raw/")).map(id->id.getPath().replace("rock/raw/","")).sorted().toList();
+            var biomes=com.cooper.terrafirmascout.tfc.BiomeChoices.forWorld(creation.getUiState().getSettings());
+            var rocks=BuiltInRegistries.BLOCK.keySet().stream().filter(id->id.getNamespace().equals("tfc")).map(id->id.getPath()).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(),RockChoices::spawnRocks));
             var editor=new SpecificationScreen(mainScreen,draft,biomes,rocks,d->{}); mc.submit(()->mc.setScreen(editor)).get(); Thread.sleep(1500);
             String[] tabs={"Resources","Limits","Nearby","Spawn","Rocks","Forest"};
             for(int i=0;i<tabs.length;i++) { final String tab=tabs[i]; if(i>0) mc.submit(()->editor.showTab(tab)).get(); Thread.sleep(900); shot(mc,out,"%02d-wishlist-%s.png".formatted(9+i,tab.toLowerCase())); }

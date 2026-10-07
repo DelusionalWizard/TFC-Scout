@@ -1,5 +1,10 @@
 # Change history
 
+## Unreleased — picker fixes (7 October 2026, uncommitted; included in the rebuilt installed 0.2.5 jar)
+- The spawn-rock picker no longer offers slab, stairs or wall variants (only real rock types such as andesite, basalt, chalk).
+- The spawn-biome picker offers only biomes the world's biome source can produce (125 tfc: biomes), not the vanilla ones that never generate in a TerraFirmaCraft world.
+- Tests: 37 JUnit passed; native smoke passed with new rock/biome assertions. Rebuilt into the 0.2.5 jar (SHA-256 8ac547b013e1da95d550ca710152b1ba802a87c8f77faa8f913df5534bbfdd65), installed for testing and copied to Downloads; not published.
+
 ## 0.2.5 — 7 October 2026 (installed for Cooper to test; source pushed to main; no release published)
 
 - Renamed the presets: God = Dream Start, Good = Easy Start, Average = Fair Start, Hard = Rugged Start, Super Hard = Wilderness Start. Config ids (`god`, `good`, ...) are unchanged. Saved seeds and reports from older versions still load (old names are accepted and shown with the new name).
