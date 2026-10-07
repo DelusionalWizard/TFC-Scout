@@ -2,7 +2,7 @@
 
 Updated 7 October 2026 by Claude Code. Cooper alternates between Codex and Claude Code; use these records to continue the same project.
 
-Source/build version: **0.2.5 (installed in Cooper's Prism instance for testing; source committed and pushed to main on 7 October 2026; no GitHub release published)**. 0.2.4 was replaced by 0.2.5 there (0.2.4 is unpublished; its release files remain in release/v0.2.4 and the jar is backed up in work/previous-release/prism-instance). Last published release: **0.2.3**. Target: Minecraft 1.21.1, NeoForge 21.1.234+, TFC **4.2.11 exactly**, Java 21.
+Source/build version: **0.2.5 (installed in Cooper's Prism instance for testing; source committed and pushed to main on 7 October 2026 as commit 170f238efde9ffe40dce3a186167a4737e29f6a0; no GitHub release published, no release folder or workflow for 0.2.5, and the 0.2.4 release files were deliberately not pushed)**. 0.2.4 was replaced by 0.2.5 there (0.2.4 is unpublished; its release files remain in release/v0.2.4 and the jar is backed up in work/previous-release/prism-instance). Last published release: **0.2.3**. Target: Minecraft 1.21.1, NeoForge 21.1.234+, TFC **4.2.11 exactly**, Java 21.
 
 ## Release candidate: 0.2.5 (quality of life, new preset names), installed for testing
 
