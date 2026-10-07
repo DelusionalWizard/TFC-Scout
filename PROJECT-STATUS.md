@@ -4,7 +4,7 @@
 
 This branch (git worktree `outputs/TerraFirmaScout-1.20.1`, branch `forge-1.20.1`, based on main at 4ee3079) is a port of 0.2.5 to the TerraFirmaGreg Modern 0.13.10 pack's platform (Forge 47.4.13, TFC 3.2.25). The 1.21.1/NeoForge line on `main` is untouched. Build with JDK 17: `gradlew test build`; libs in `libs/` (`TerraFirmaCraft-Forge-1.20.1-3.2.25.jar`, `Patchouli-1.20.1-85-FORGE.jar` plus a copy named `Patchouli-1.20.1-85-FORGE-1.jar` for flatDir) are not in Git. Version 0.2.5, jar `terrafirmascout-1.20.1-0.2.5.jar`. `gradlew jar -PwithHarness=true` builds a separate `-harness` jar that keeps the dev smoke tests; release jars never contain them.
 
-**Final jar:** `build/libs/terrafirmascout-1.20.1-0.2.5.jar`, 200,696 bytes, SHA-256 18411819859a5e09be0e376f6790516843c8610bacdffdc6e7f67802a35042d3, no development classes. Copied to the user's Downloads. Not installed in any launcher, not pushed, not published.
+**Final jar:** `build/libs/terrafirmascout-1.20.1-0.2.5.jar`, 200,696 bytes, SHA-256 18411819859a5e09be0e376f6790516843c8610bacdffdc6e7f67802a35042d3, no development classes. Copied to the user's Downloads. Branch pushed to GitHub as origin/forge-1.20.1 (commits ba12636 and 979250d, README states the tested compatibility). No release published, not installed in any launcher.
 
 What changed from the 1.21.1 source:
 - Build: ForgeGradle 6 + MixinGradle, `mods.toml`, `pack.mcmeta`, and `"refmap"` in the mixin config (without it a real install cannot find Scout's vanilla-class hooks). Java 17 (no `getFirst`/`getLast`).
