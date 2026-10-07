@@ -26,6 +26,8 @@ public final class DetailedScanner {
         var climate=a.data(sx,sz); double temp=climate.getAverageSeaLevelTemp(sx,sz),rain=climate.getAverageRainfall(sx,sz);
         if(p.requires(Criterion.CLIMATE)&&(temp<p.temperatureMin()||temp>p.temperatureMax()+20||rain<p.rainfallMin()||rain>p.rainfallMax())) return null;
         evidence.put(Criterion.CLIMATE,Evidence.inferred(0,sx,sz,"TFC climate %.2f C / %.2f mm; final spawn pending".formatted(temp,rain)));
+        if(p.requires(Criterion.CROPS)) evidence.put(Criterion.CROPS,Evidence.inferred(0,sx,sz,"Checked at the final spawn"));
+        if(p.requires(Criterion.FARMLAND)) evidence.put(Criterion.FARMLAND,Evidence.inferred(0,sx,sz,"Checked at the final spawn"));
         var rocks=new HashSet<String>();
         boolean sample=p.requires(Criterion.FLUX)||p.requires(Criterion.FOREST)||p.requires(Criterion.TERRAIN)||p.requires(Criterion.DIVERSITY);
         for(int dx=-p.analysisRadius();sample&&dx<=p.analysisRadius();dx+=128) { s.checkpoint();

@@ -53,6 +53,20 @@ public final class TFCFeatureProbe {
             double quality=(CandidateScorer.climate(temperature,profile.temperatureMin(),profile.temperatureIdealMin(),profile.temperatureIdealMax(),profile.temperatureMax())
                 +CandidateScorer.climate(rain,profile.rainfallMin(),profile.rainfallIdealMin(),profile.rainfallIdealMax(),profile.rainfallMax()))/2;
             evidence.put(Criterion.CLIMATE,verified(0,spawn,quality,"Yearly average: %.2f C; rainfall: %.2f mm".formatted(temperature,rain)));
+            if(profile.requires(Criterion.CROPS)||profile.requires(Criterion.FARMLAND)) {
+                float driest=climate.getMinRainfallHydration(spawn),wettest=climate.getMaxRainfallHydration(spawn);
+                if(profile.requires(Criterion.CROPS)) {
+                    var fit=CropFit.crops(temperature,driest);
+                    evidence.put(Criterion.CROPS,fit.enough()?verified(0,spawn,1,fit.describe()):Evidence.failed(fit.describe()));
+                }
+                if(profile.requires(Criterion.FARMLAND)) {
+                    double middle=(driest+wettest)/2; boolean fits=middle>=CropFit.FARMLAND_MIN&&middle<=CropFit.FARMLAND_MAX;
+                    String text="Rain alone keeps farmland between %.0f%% and %.0f%% moist".formatted(driest,wettest);
+                    evidence.put(Criterion.FARMLAND,fits?verified(0,spawn,1,text):Evidence.failed(text+(middle<CropFit.FARMLAND_MIN?"; too dry without irrigation":"; too wet")));
+                }
+                if(profile.requiredCriteria().stream().anyMatch(c->(c==Criterion.CROPS||c==Criterion.FARMLAND)&&evidence.get(c).state()==VerificationState.FAILED))
+                    return new SeedResult(adapter.seed,spawn.getX(),spawn.getY(),spawn.getZ(),fingerprint,profile,evidence);
+            }
             if(profile.requires(Criterion.CHALLENGE)) {
                 int low=Integer.MAX_VALUE,high=Integer.MIN_VALUE; var cp=new ChunkPos(spawn);
                 for(int dx=-1;dx<=1;dx++) for(int dz=-1;dz<=1;dz++) { session.checkpoint();

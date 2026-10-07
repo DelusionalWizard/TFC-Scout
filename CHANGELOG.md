@@ -2,6 +2,12 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.6 remains published.
 
+## 0.2.7 (8 October 2026, not published)
+- Idea taken from a review of the old TFC Seed Maker (GPLv3, TFC 1.7.10; no code copied, its crops item was never finished): two new optional wishlist checks, never part of the presets.
+- **Crops:** counts the crops whose climate range (read from the loaded data, so addon crops count) contains the yearly average temperature at the final spawn and which rain alone does not make too wet. It needs at least 10 crops, or half of all loaded crops if fewer exist. The result row lists some of them.
+- **Farmland moisture (1.21.1 only):** the middle of TFC's rain-driven farmland hydration (minimum and maximum rainfall hydration in the chunk data) at spawn must be 30-80%, so crops grow without irrigating. Groundwater was checked and is not used by farmland in TFC 4.2.11, so it is not part of this check.
+- Both are checked in the real temporary world after the climate check, so a seed that fails them is dropped before any resource check.
+
 ## 0.2.6 (8 October 2026, published as prerelease)
 - Suggestions from a community comment: the single Freshwater check is gone. River, Lake and Coast or ocean are now separate optional wishlist checks, each with its own distance (River uses the old freshwater distance). The presets no longer require water; their weights were redistributed so the total is still 100.
 - Confirming a river or lake needs a water source block in a river or lake biome; coast or ocean needs TFC salt water. Saved results and wishlists from older versions still load (a saved Freshwater requirement is dropped).
