@@ -1,6 +1,6 @@
 # Current project status
 
-Updated 7 October 2026 by Claude Code. Cooper alternates between Codex and Claude Code; use these records to continue the same project.
+Updated 7 October 2026 by Claude Code. **0.2.5 published as a GitHub prerelease v0.2.5 (jar SHA-256 8ac547b013e1da95d550ca710152b1ba802a87c8f77faa8f913df5534bbfdd65, verified against the uploaded asset digest; release/v0.2.5 + publish-v0.2.5.yml, commit 68d48c6). The picker fixes (commit 1bb00de) are in that jar. 0.2.4 remains unpublished and its files stay untracked.** Cooper alternates between Codex and Claude Code; use these records to continue the same project.
 
 Source/build version: **0.2.5 (installed in Cooper's Prism instance for testing; source pushed to main on 7 October 2026 (commits 170f238, f94b60c and 4142551, the last containing the stale-message fix and matching the installed jar); no GitHub release published, no release folder or workflow for 0.2.5, and the 0.2.4 release files were deliberately not pushed)**. 0.2.4 was replaced by 0.2.5 there (0.2.4 is unpublished; its release files remain in release/v0.2.4 and the jar is backed up in work/previous-release/prism-instance). Last published release: **0.2.3**. Target: Minecraft 1.21.1, NeoForge 21.1.234+, TFC **4.2.11 exactly**, Java 21.
 

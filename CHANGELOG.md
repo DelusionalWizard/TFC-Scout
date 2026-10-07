@@ -1,11 +1,11 @@
 # Change history
 
-## Unreleased — picker fixes (7 October 2026, uncommitted; included in the rebuilt installed 0.2.5 jar)
+## 0.2.5 picker fixes (7 October 2026, commit 1bb00de; included in the published 0.2.5 jar)
 - The spawn-rock picker no longer offers slab, stairs or wall variants (only real rock types such as andesite, basalt, chalk).
 - The spawn-biome picker offers only biomes the world's biome source can produce (125 tfc: biomes), not the vanilla ones that never generate in a TerraFirmaCraft world.
-- Tests: 37 JUnit passed; native smoke passed with new rock/biome assertions. Rebuilt into the 0.2.5 jar (SHA-256 8ac547b013e1da95d550ca710152b1ba802a87c8f77faa8f913df5534bbfdd65), installed for testing and copied to Downloads; not published.
+- Tests: 37 JUnit passed; native smoke passed with new rock/biome assertions. Rebuilt into the 0.2.5 jar (SHA-256 8ac547b013e1da95d550ca710152b1ba802a87c8f77faa8f913df5534bbfdd65), installed for testing, copied to Downloads and published as the v0.2.5 prerelease.
 
-## 0.2.5 — 7 October 2026 (installed for Cooper to test; source pushed to main; no release published)
+## 0.2.5 — 7 October 2026 (published as a prerelease; includes the 0.2.4 work, which was never published separately)
 
 - Renamed the presets: God = Dream Start, Good = Easy Start, Average = Fair Start, Hard = Rugged Start, Super Hard = Wilderness Start. Config ids (`god`, `good`, ...) are unchanged. Saved seeds and reports from older versions still load (old names are accepted and shown with the new name).
 - Results screen: every confirmed match from the search stays available after Stop or Pause, plus up to 12 close calls (seeds that missed exactly one check that only ran out of inspection budget). A close call has a Look harder button that re-checks it with a larger budget (96+ chunks per resource) through the same real-world checks; it can never be used unless every required check is confirmed. A result whose only open check was never reached is not offered as a close call.
