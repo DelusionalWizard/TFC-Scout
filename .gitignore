@@ -6,3 +6,7 @@ libs/*.jar
 *.hprof
 .idea/
 .vscode/
+
+# Release files live on GitHub Releases, not in the repository
+release/
+.github/workflows/publish-v*.yml

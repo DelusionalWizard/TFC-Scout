@@ -35,7 +35,7 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
             minimumLand,landRadius,terrainRadius,campRadius,minimumCopperUnits,minimumCopperPieces,kaolinSameLandmass,distances,minimumRoughness,specification,all,extra);
     }
     public ScoutProfile {
-        distances=Map.copyOf(distances); specification=Objects.requireNonNull(specification); skipped=skipped==null?Set.of():Set.copyOf(skipped); extra=extra==null?Set.of():Set.copyOf(extra);
+        distances=Map.copyOf(withDefaults(distances,radius)); specification=Objects.requireNonNull(specification); skipped=skipped==null?Set.of():Set.copyOf(skipped); extra=extra==null?Set.of():Set.copyOf(extra);
         if(minScore<(!specification.enabled()&&SeedQuality.fromName(name)==SeedQuality.GOD?90:0)||minScore>100||radius<300||radius>12000||minimumLand<(specification.enabled()?0:SeedQuality.fromName(name)==SeedQuality.GOD?0.7:0.25)||minimumLand>1||minimumRoughness<0
             ||landRadius<(specification.enabled()?16:1000)||terrainRadius<16||campRadius<16||minimumCopperUnits<(specification.enabled()?1:100)||minimumCopperPieces<(specification.enabled()?1:10)
             ||!(temperatureMin<=temperatureIdealMin&&temperatureIdealMin<=temperatureIdealMax&&temperatureIdealMax<=temperatureMax)
@@ -45,12 +45,18 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
             ||(specification.requirements().contains(Criterion.OPEN_GROUND)&&campRadius>radius)
             ||((specification.requirements().contains(Criterion.LAND_RATIO)||specification.requirements().contains(Criterion.MAINLAND))&&landRadius>radius)))
             throw new IllegalArgumentException("Your building, camp or land check is larger than the search area.");
-        for(var c:List.of(Criterion.FRESHWATER,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,
+        for(var c:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,
             Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN))
             if(!distances.containsKey(c)||distances.get(c)<1||(!specification.enabled()||specification.requirements().contains(c))&&distances.get(c)>radius) throw new IllegalArgumentException("Check the distance for "+c);
         // Iron and coal came later; saved settings from older versions have no distance for them, which means the whole search area.
         for(var c:List.of(Criterion.IRON,Criterion.COAL))
             if(distances.containsKey(c)&&(distances.get(c)<1||(!specification.enabled()||specification.requirements().contains(c))&&distances.get(c)>radius)) throw new IllegalArgumentException("Check the distance for "+c);
+    }
+    /** Saved profiles from before the river, lake and coast checks have no distance for them. */
+    private static Map<Criterion,Integer> withDefaults(Map<Criterion,Integer> given,int radius) {
+        var all=new EnumMap<Criterion,Integer>(Criterion.class); all.putAll(given);
+        for(var c:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST)) all.putIfAbsent(c,Math.min(radius,600));
+        return all;
     }
     public int distance(Criterion c) { return distances.getOrDefault(c,radius); }
     public SeedQuality quality() { return SeedQuality.fromName(name); }
@@ -72,7 +78,7 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
     public String description() {
         if(specification.enabled())return "Your wishlist: "+specification.requirements().size()+" things to check; nearby biomes: "+(specification.allBiomes()?"ALL":"ANY")+" within "+specification.biomeRadius()+" blocks.";
         return switch(quality()){case GOD->"Everything close by on a mainland start, with graphite and kaolin in reach.";case GOOD->"The same list as Dream Start, with a little more travel allowed.";
-            case AVERAGE->"Solid basics: copper, tin, flux, clay, trees and water. Late extras can wait.";case HARD->"A cold, rugged start. The essentials are there, but you may have to travel.";case SUPER_HARD->"Freezing weather and very rough ground, with the essentials within reach.";};
+            case AVERAGE->"Solid basics: copper, tin, flux, clay and trees. Late extras can wait.";case HARD->"A cold, rugged start. The essentials are there, but you may have to travel.";case SUPER_HARD->"Freezing weather and very rough ground, with the essentials within reach.";};
     }
     /** Name to show a player: saved seeds from older versions carry the old preset names. */
     public String displayName() {
@@ -83,14 +89,14 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
     public static ScoutProfile balanced() { return preset(SeedQuality.GOOD); }
     public static ScoutProfile preset(SeedQuality quality) {
         var d=new EnumMap<Criterion,Integer>(Criterion.class);
-        var keys=List.of(Criterion.FRESHWATER,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,
+        var keys=List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,
             Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN,Criterion.IRON,Criterion.COAL);
         int[] values=switch(quality) {
-            case GOD->new int[]{160,350,300,750,1000,1200,2000,4000,4000,3000,2500};
-            case GOOD->new int[]{250,500,500,1000,1500,2000,3000,5000,6000,4000,3500};
-            case AVERAGE->new int[]{400,800,800,1500,2500,3500,4500,7000,9000,6000,5000};
-            case HARD->new int[]{800,1500,2000,3000,3500,6000,7000,10000,12000,9000,8000};
-            case SUPER_HARD->new int[]{1500,2500,3500,5000,6000,8000,10000,12000,12000,12000,12000};
+            case GOD->new int[]{160,400,1000,350,300,750,1000,1200,2000,4000,4000,3000,2500};
+            case GOOD->new int[]{250,600,1500,500,500,1000,1500,2000,3000,5000,6000,4000,3500};
+            case AVERAGE->new int[]{400,1000,2500,800,800,1500,2500,3500,4500,7000,9000,6000,5000};
+            case HARD->new int[]{800,2000,4000,1500,2000,3000,3500,6000,7000,10000,12000,9000,8000};
+            case SUPER_HARD->new int[]{1500,3000,6000,2500,3500,5000,6000,8000,10000,12000,12000,12000,12000};
         };
         for(int i=0;i<keys.size();i++) d.put(keys.get(i),values[i]);
         return switch(quality) {

@@ -1,5 +1,12 @@
 # Change history
 
+## 0.2.6 for Minecraft 1.20.1 / Forge (8 October 2026, not published)
+- Suggestions from a community comment: the single Freshwater check is gone. River, Lake and Coast or ocean are now separate optional wishlist checks, each with its own distance (River uses the old freshwater distance). The presets no longer require water; their weights were redistributed so the total is still 100.
+- Confirming a river or lake needs a water source block in a river or lake biome; coast or ocean needs TFC salt water. Saved results and wishlists from older versions still load (a saved Freshwater requirement is dropped).
+- The result screen's Spawn point row now also shows the trees at spawn: forest type and tree density as a percentage (TFC 3.2 chunk data).
+- Release files (jar, checksums, notes) are no longer stored in Git; releases are on the GitHub Releases page only. Old release/ folders and one-off publish workflows were removed from the repository (the releases themselves are unchanged).
+- Tests: 41 unit tests; real-install smoke with TFC alone passed, including a new check that River, Lake and Coast each confirm on real seeds (8 of 8 each).
+
 ## 0.2.5 for Minecraft 1.20.1 / Forge (branch forge-1.20.1, 7 October 2026, pushed to GitHub, prerelease v0.2.5-1.20.1)
 - Port of 0.2.5 to Minecraft 1.20.1, Forge 47.4.x, TFC 3.2.25 and Java 17, aimed at the TerraFirmaGreg Modern pack. Same features as the 1.21.1 build.
 - Scout now reads the world's own data: only ore veins the world can generate count, and what a vein provides comes from the blocks it places. Resources a world cannot generate are not required, with a notice. Plain TFC behaves as before.

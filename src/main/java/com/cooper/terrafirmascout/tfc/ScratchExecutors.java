@@ -11,7 +11,7 @@ public final class ScratchExecutors {
     }
     public static ExecutorService create() {
         return new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<>(),r->{
-            var thread=new Thread(r,"TerraFirmaScout chunk generator");thread.setDaemon(true);return thread;
+            var thread=new Thread(r,"TerraFirmaScout chunk generator");thread.setDaemon(true);thread.setContextClassLoader(ScratchExecutors.class.getClassLoader());return thread;
         }) {
             @Override protected void beforeExecute(Thread thread,Runnable task) { super.beforeExecute(thread,task); CURRENT.set(this); }
             @Override protected void afterExecute(Runnable task,Throwable failure) { try { CURRENT.remove(); } finally { super.afterExecute(task,failure); } }

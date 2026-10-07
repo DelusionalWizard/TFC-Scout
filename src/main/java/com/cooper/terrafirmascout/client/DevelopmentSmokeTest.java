@@ -148,6 +148,25 @@ public final class DevelopmentSmokeTest {
             String benchmark="";
             if(suite){
                 Thread.sleep(8000); // Allow all specification pages to render and be captured by the UI thread.
+                for(var water:java.util.List.of(com.cooper.terrafirmascout.score.Criterion.RIVER,com.cooper.terrafirmascout.score.Criterion.LAKE,com.cooper.terrafirmascout.score.Criterion.COAST)) {
+                    int ok=0,tried=0;
+                    for(long ws=seed;ws<seed+8;ws++) {
+                        var wa=new com.cooper.terrafirmascout.tfc.TFCWorldgenAdapter(ws,c.settings(),c.biomes());
+                        try {
+                            var wd=SpecificationDraft.fromPreset(ScoutProfile.beginner());wd.required.clear();wd.required.add(water);
+                            wd.numbers.put(water.name().toLowerCase()+"_distance",3000d);wd.numbers.put("min_score",0d);
+                            wd.numbers.put("temperature_min",-20d);wd.numbers.put("temperature_ideal_min",-20d);wd.numbers.put("temperature_ideal_max",40d);wd.numbers.put("temperature_max",40d);
+                            wd.numbers.put("rainfall_min",0d);wd.numbers.put("rainfall_ideal_min",0d);wd.numbers.put("rainfall_ideal_max",500d);wd.numbers.put("rainfall_max",500d);
+                            var wp=wd.build();var wcand=DetailedScanner.scan(wa,wa.spawnBiome(),wp,new SearchSession(),c.creation().worldgenLoadContext(),c.copyGenerator());
+                            if(wcand==null||wcand.targets().get(water).isEmpty())continue; tried++;
+                            var wr=new TFCFeatureProbe(c,wp,new SearchSession(),24).verify(wcand,fingerprint);
+                            var we=wr.evidence().get(water);
+                            if(we!=null&&we.state()==com.cooper.terrafirmascout.score.VerificationState.VERIFIED){ok++;if(!Double.isFinite(we.distance())||we.distance()>3000)throw new AssertionError(water+" distance out of range");}
+                        } finally { wa.releaseThreadCaches(); }
+                    }
+                    benchmark+="Water check "+water+": "+ok+" confirmed of "+tried+" seeds with candidates (8 seeds tried)\n";
+                    if(ok==0)throw new AssertionError("No seed confirmed "+water+" ("+tried+" candidates)");
+                }
                 var draft=SpecificationDraft.fromPreset(ScoutProfile.beginner());draft.required.clear();draft.required.add(com.cooper.terrafirmascout.score.Criterion.CLIMATE);
                 draft.nearbyBiomes.add(a.biome(spawn.getX(),spawn.getZ()).key().location().toString());draft.allBiomes=true;
                 draft.numbers.put("temperature_min",-20d);draft.numbers.put("temperature_ideal_min",-20d);draft.numbers.put("temperature_ideal_max",40d);draft.numbers.put("temperature_max",40d);

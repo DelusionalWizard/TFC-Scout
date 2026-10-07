@@ -63,7 +63,7 @@ class VerificationTest {
     }
     @Test void scoreWeightsTotalOneHundred() { assertEquals(100,Arrays.stream(Criterion.values()).mapToInt(c->c.weight).sum()); }
     @Test void noInferredHardRequirementCanSelectEvenAtNinetyFive() {
-        var everything=ScoutProfile.beginner().withExtra(Set.of(Criterion.IRON,Criterion.COAL)); // requires every hard criterion
+        var everything=ScoutProfile.beginner().withExtra(Set.of(Criterion.IRON,Criterion.COAL,Criterion.RIVER,Criterion.LAKE,Criterion.COAST)); // requires every hard criterion
         for(var c:Criterion.values()) if(c.hard()) {
             var map=complete(); map.put(c,Evidence.inferred(100,1,1,"geology only"));
             assertFalse(new SeedResult(1,0,64,0,"same",everything,map).selectable("same"),c.name());

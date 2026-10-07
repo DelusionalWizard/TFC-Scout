@@ -9,7 +9,7 @@ public enum SeedQuality {
     SeedQuality(String label,String id) { this.label=label;this.id=id; }
     public boolean challenging() { return this==HARD||this==SUPER_HARD; }
     public Set<Criterion> required() {
-        var set=EnumSet.of(Criterion.SPAWN,Criterion.CLIMATE,Criterion.FRESHWATER,Criterion.FOREST,Criterion.CLAY,
+        var set=EnumSet.of(Criterion.SPAWN,Criterion.CLIMATE,Criterion.FOREST,Criterion.CLAY,
             Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.TERRAIN,Criterion.OPEN_GROUND);
         if(!challenging()) set.addAll(EnumSet.of(Criterion.MAINLAND,Criterion.LAND_RATIO,Criterion.FLUX,Criterion.TIN));
         if(this==GOOD||this==GOD) set.addAll(EnumSet.of(Criterion.GRAPHITE,Criterion.KAOLIN,Criterion.CONNECTIVITY));

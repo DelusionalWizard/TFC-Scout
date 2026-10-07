@@ -8,7 +8,7 @@ Scout is available from the **World** tab in Create World.
 
 ## Minecraft 1.20.1 (Forge) build and compatibility
 
-This branch builds TerraFirmaScout for **Minecraft 1.20.1, Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17**. Put `terrafirmascout-1.20.1-0.2.5.jar` in `mods`. The 1.21.1 / NeoForge version is on `main`.
+This branch builds TerraFirmaScout for **Minecraft 1.20.1, Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17**. Put `terrafirmascout-1.20.1-0.2.6.jar` in `mods`. The 1.21.1 / NeoForge version is on `main`.
 
 Scout reads what the world can actually generate, so it works with addons and packs that change generation. If a pack removes a resource, that requirement is skipped and the search screen says so. Features for a particular pack only run when that pack's mod is installed.
 
@@ -18,6 +18,8 @@ Tested on 7 October 2026 by launching the real game (Forge 47.4.18) and running 
 
 - **TerraFirmaCraft 3.2.25 with Patchouli, no other mods:** passes.
 - **TerraFirmaGreg Modern 0.13.10 (the complete pack, 262 mods at its exact versions):** passes. This includes, among others, TerraFirmaGreg-Core 0.9.23, GregTech CEu Modern 7.5.3, KubeJS 2001.6.5 with KubeJS TFC, Lithostitched 1.4.11, TFC ruined world 0.0.4, TFC Ruins 1.0.1, TFC Tumbleweed 1.2.2, Tumbleweed 0.5.5, FirmaLife 2.1.28, ArborFirmaCraft 1.0.22, Firma: Civilization 1.0.9, Roads and Roofs TFC 0.2.5, Create 6.0.8, Ad Astra 1.15.20, Beneath 1.0.6, TFCGenViewer 1.5.1, Cherished Worlds 6.1.7 and FancyMenu 3.8.1.
+
+On 8 October 2026 version 0.2.6 was rerun the same way (plain TFC and the full TerraFirmaGreg pack, including new river, lake and coast checks on real seeds).
 
 Individual addons were tested only as part of that pack, not one at a time. Other versions of TerraFirmaGreg, other packs and dedicated servers are untested.
 
@@ -51,7 +53,7 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 ## Current status
 
-Version **0.2.5** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
+Version **0.2.6** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
 Version 0.2.2 fixes optional checks affecting match scores and candidate ordering, and labels unused checks clearly. It also includes the seed-cache fix from 0.2.1. A focused 1,200-seed native sampling test held memory steady with zero old region generators retained after collection. Twenty-four scratch-world checks also released their levels, generators and worker threads. These checks do not measure gameplay FPS or guarantee compatibility with every modpack.
 

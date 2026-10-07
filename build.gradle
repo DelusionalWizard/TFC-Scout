@@ -1,6 +1,6 @@
 plugins { id 'java'; id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'; id 'org.spongepowered.mixin' version '0.7.+' }
 group = 'com.cooper.terrafirmascout'
-version = '0.2.5'
+version = '0.2.6'
 base { archivesName = 'terrafirmascout-1.20.1' }
 java { toolchain.languageVersion = JavaLanguageVersion.of(17) }
 mixin { add sourceSets.main, 'terrafirmascout.refmap.json'; config 'terrafirmascout.mixins.json' }

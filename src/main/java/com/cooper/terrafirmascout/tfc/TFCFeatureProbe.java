@@ -35,7 +35,8 @@ public final class TFCFeatureProbe {
             var refined=DetailedScanner.scan(adapter,spawn,profile,session,world.level.registryAccess(),world.level.getChunkSource().getGenerator());
             if(refined==null) return result(candidate,spawn,fingerprint,Criterion.CLIMATE,Evidence.failed("The climate at spawn does not fit this starting style"));
             var evidence=new EnumMap<Criterion,Evidence>(Criterion.class); evidence.putAll(refined.evidence());
-            evidence.put(Criterion.SPAWN,verified(0,spawn,1,"The normal TFC spawn point"));
+            var spawnData=TfcCompat.data(world.level,world.level.getChunk(spawn));
+            evidence.put(Criterion.SPAWN,verified(0,spawn,1,"The normal TFC spawn point. Trees here: "+spawnData.getForestType().getSerializedName().replace('_',' ')+", "+String.format("%.0f%%",spawnData.getForestDensity()*100)+" tree density"));
             if(profile.specification().enabled()) {
                 var match=SpecificationVerifier.verify(profile.specification(),adapter,world,spawn,session);evidence.put(Criterion.SPECIFICATION,match);
                 if(match.state()!=VerificationState.VERIFIED)return new SeedResult(adapter.seed,spawn.getX(),spawn.getY(),spawn.getZ(),fingerprint,profile,evidence);
@@ -66,7 +67,7 @@ public final class TFCFeatureProbe {
             var inspected=new HashMap<Long,ChunkAccess>();
             var pieces=new HashSet<BlockPos>(); int[] copperUnits={0};
             var missed=EnumSet.noneOf(Criterion.class);
-            for(var criterion:List.of(Criterion.FRESHWATER,Criterion.TERRAIN,Criterion.OPEN_GROUND,Criterion.FOREST,Criterion.CLAY,
+            for(var criterion:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.TERRAIN,Criterion.OPEN_GROUND,Criterion.FOREST,Criterion.CLAY,
                 Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.IRON,Criterion.COAL,Criterion.KAOLIN)) {
                 if(!profile.requires(criterion)) { evidence.put(criterion,Evidence.absent("Not needed for this search")); continue; }
                 session.stage="Checking "+criterion.label; session.checkpoint();
@@ -213,8 +214,7 @@ public final class TFCFeatureProbe {
             for(int y=Math.min(top+1,chunk.getMaxBuildHeight()-1);y>=min;y--) {
                 var pos=new BlockPos(x,y,z); var state=chunk.getBlockState(pos); var id=BuiltInRegistries.BLOCK.getKey(state.getBlock());
                 boolean found=false;
-                if(c==Criterion.FRESHWATER) found=!state.getFluidState().isEmpty()&&state.getFluidState().isSource()
-                    &&(id.toString().equals("minecraft:water")||id.toString().equals("tfc:fluid/river_water"))&&y>=ground-2;
+                if(c==Criterion.RIVER||c==Criterion.LAKE||c==Criterion.COAST) found=waterFound(chunk,c,state,id.toString(),x,y,z)&&y>=ground-2;
                 if(c==Criterion.FOREST) found=state.is(net.minecraft.tags.BlockTags.LOGS)&&y>=ground;
                 if(c==Criterion.CLAY) found=id.getNamespace().equals("tfc")&&(id.getPath().startsWith("clay/")||id.getPath().startsWith("clay_grass/")||id.getPath().startsWith("clay_duff/"));
                 if(c==Criterion.KAOLIN) found=id.getNamespace().equals("tfc")&&Set.of("white_kaolin_clay","pink_kaolin_clay","red_kaolin_clay","kaolin_clay_grass").contains(id.getPath());
@@ -239,6 +239,13 @@ public final class TFCFeatureProbe {
             }
         }
         return null;
+    }
+    private static boolean waterFound(ChunkAccess chunk,Criterion c,net.minecraft.world.level.block.state.BlockState state,String id,int x,int y,int z) {
+        if(state.getFluidState().isEmpty()||!state.getFluidState().isSource()) return false;
+        if(c==Criterion.COAST) return id.equals("tfc:fluid/salt_water");
+        if(!id.equals("minecraft:water")&&!id.equals("tfc:fluid/river_water")) return false;
+        String biome=chunk.getNoiseBiome(x>>2,y>>2,z>>2).unwrapKey().map(k->k.location().getPath()).orElse("");
+        return biome.contains(c==Criterion.RIVER?"river":"lake");
     }
     private BlockPos buildablePatch(ChunkAccess chunk,BlockPos spawn,Criterion c) {
         // WG maps can retain pre-decoration ground under trees. Build a private inspection map with the native predicate.
