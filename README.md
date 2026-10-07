@@ -6,9 +6,27 @@ TerraFirmaScout searches seeds from the world-creation screen and checks promisi
 
 Scout is available from the **World** tab in Create World.
 
-## Minecraft 1.20.1 (Forge) build
+## Minecraft 1.20.1 (Forge) build and compatibility
 
-The `forge-1.20.1` branch builds TerraFirmaScout for Minecraft 1.20.1 with Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17, including the TerraFirmaGreg Modern pack. Put `terrafirmascout-1.20.1-0.2.5.jar` in `mods`. Scout reads what the world can actually generate, so it works with addons and packs that change generation. If a pack removes a resource (TerraFirmaGreg removes TFC's loose copper), that requirement is skipped and the search screen says so. Only when TerraFirmaGreg is installed, its presets also look for iron and coal, and searches are slower because the pack's own world generation is heavier.
+This branch builds TerraFirmaScout for **Minecraft 1.20.1, Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17**. Put `terrafirmascout-1.20.1-0.2.5.jar` in `mods`. The 1.21.1 / NeoForge version is on `main`.
+
+Scout reads what the world can actually generate, so it works with addons and packs that change generation. If a pack removes a resource, that requirement is skipped and the search screen says so. Features for a particular pack only run when that pack's mod is installed.
+
+### What was tested
+
+Tested on 7 October 2026 by launching the real game (Forge 47.4.18) and running Scout's automated checks: world creation screen, searching, Pause/Stop, results, picking a seed, and confirmation in a real temporary world.
+
+- **TerraFirmaCraft 3.2.25 with Patchouli, no other mods:** passes.
+- **TerraFirmaGreg Modern 0.13.10 (the complete pack, 262 mods at its exact versions):** passes. This includes, among others, TerraFirmaGreg-Core 0.9.23, GregTech CEu Modern 7.5.3, KubeJS 2001.6.5 with KubeJS TFC, Lithostitched 1.4.11, TFC ruined world 0.0.4, TFC Ruins 1.0.1, TFC Tumbleweed 1.2.2, Tumbleweed 0.5.5, FirmaLife 2.1.28, ArborFirmaCraft 1.0.22, Firma: Civilization 1.0.9, Roads and Roofs TFC 0.2.5, Create 6.0.8, Ad Astra 1.15.20, Beneath 1.0.6, TFCGenViewer 1.5.1, Cherished Worlds 6.1.7 and FancyMenu 3.8.1.
+
+Individual addons were tested only as part of that pack, not one at a time. Other versions of TerraFirmaGreg, other packs and dedicated servers are untested.
+
+### TerraFirmaGreg
+
+- Scout follows TerraFirmaGreg's changed world generation. Searches are slower there, because the pack's generation is heavier and Scout has to check seeds one at a time.
+- TerraFirmaGreg removes TFC's default ore veins and adds its own that place GregTech ores. Scout confirms copper, tin, graphite, iron and coal by those ores. TFC's ore melting is removed too, so the loose copper requirement is skipped in that pack.
+- Only with TerraFirmaGreg installed, the Dream, Easy and Fair presets also require iron and coal. Iron and coal are optional resources in the wishlist everywhere.
+- Pause can take a few seconds in that pack while a seed is being checked.
 
 ## Features
 
