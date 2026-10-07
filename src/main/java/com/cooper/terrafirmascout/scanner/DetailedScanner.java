@@ -41,13 +41,15 @@ public final class DetailedScanner {
             }
         }
         // Refine small-radius resources; climate/biome conditions are candidates, never guarantees.
-        int nearby=Math.max(p.requires(Criterion.CLAY)?p.distance(Criterion.CLAY):0,p.requires(Criterion.FRESHWATER)?p.distance(Criterion.FRESHWATER):0); int step=nearby>800?64:16;
+        int nearby=Math.max(p.requires(Criterion.CLAY)?p.distance(Criterion.CLAY):0,Math.max(p.requires(Criterion.RIVER)?p.distance(Criterion.RIVER):0,Math.max(p.requires(Criterion.LAKE)?p.distance(Criterion.LAKE):0,p.requires(Criterion.COAST)?p.distance(Criterion.COAST):0))); int step=nearby>800?64:16;
         for(int dx=-nearby;dx<=nearby;dx+=step) { s.checkpoint();
             for(int dz=-nearby;dz<=nearby;dz+=step) {
                 double d=Math.hypot(dx,dz); int x=sx+dx,z=sz+dz;
                 var b=a.biome(x,z);
-                if(p.requires(Criterion.FRESHWATER)&&d<=p.distance(Criterion.FRESHWATER)&&!b.isSalty()&&(b.key().location().getPath().contains("river")||b.key().location().getPath().contains("lake")))
-                    targets.get(Criterion.FRESHWATER).add(new BlockPos(x,0,z));
+                String waterPath=b.key().location().getPath();
+                if(p.requires(Criterion.RIVER)&&d<=p.distance(Criterion.RIVER)&&!b.isSalty()&&waterPath.contains("river")) targets.get(Criterion.RIVER).add(new BlockPos(x,0,z));
+                if(p.requires(Criterion.LAKE)&&d<=p.distance(Criterion.LAKE)&&!b.isSalty()&&waterPath.contains("lake")) targets.get(Criterion.LAKE).add(new BlockPos(x,0,z));
+                if(p.requires(Criterion.COAST)&&d<=p.distance(Criterion.COAST)&&(b.isSalty()||b.isShore())) targets.get(Criterion.COAST).add(new BlockPos(x,0,z));
                 if(p.requires(Criterion.CLAY)&&d<=p.distance(Criterion.CLAY)&&a.land(x,z))
                     targets.get(Criterion.CLAY).add(new BlockPos(x,0,z));
             }

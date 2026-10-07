@@ -1,5 +1,12 @@
 # Change history
 
+## 0.2.6 (8 October 2026, not published)
+- Suggestions from a community comment: the single Freshwater check is gone. River, Lake and Coast or ocean are now separate optional wishlist checks, each with its own distance (River uses the old freshwater distance). The presets no longer require water; their weights were redistributed so the total is still 100.
+- Confirming a river or lake needs a water source block in a river or lake biome; coast or ocean needs TFC salt water. Saved results and wishlists from older versions still load (a saved Freshwater requirement is dropped).
+- The result screen's Spawn point row now also shows the trees at spawn: forest type and density 0-4 (TFC 4.2 forest type).
+- Release files (jar, checksums, notes) are no longer stored in Git; releases are on the GitHub Releases page only. Old release/ folders and one-off publish workflows were removed from the repository (the releases themselves are unchanged).
+- Tests: 37 unit tests; development-client smoke passed, including a new check that River, Lake and Coast each confirm on real seeds (8 of 8 each).
+
 ## 0.2.5 picker fixes (7 October 2026, commit 1bb00de; included in the published 0.2.5 jar)
 - The spawn-rock picker no longer offers slab, stairs or wall variants (only real rock types such as andesite, basalt, chalk).
 - The spawn-biome picker offers only biomes the world's biome source can produce (125 tfc: biomes), not the vanilla ones that never generate in a TerraFirmaCraft world.

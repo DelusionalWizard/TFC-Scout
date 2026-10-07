@@ -29,7 +29,7 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 ## Current status
 
-Version **0.2.5** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
+Version **0.2.6** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
 Version 0.2.2 fixes optional checks affecting match scores and candidate ordering, and labels unused checks clearly. It also includes the seed-cache fix from 0.2.1. A focused 1,200-seed native sampling test held memory steady with zero old region generators retained after collection. Twenty-four scratch-world checks also released their levels, generators and worker threads. These checks do not measure gameplay FPS or guarantee compatibility with every modpack.
 
