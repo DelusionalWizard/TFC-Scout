@@ -21,7 +21,7 @@ public final class ReportText {
             if(reveal&&e!=null&&e.state()==VerificationState.VERIFIED) sb.append(" (X=").append(e.x()).append(" Y=").append(e.y()).append(" Z=").append(e.z()).append(')');
             sb.append('\n');
         }
-        sb.append("Found with TerraFirmaScout for TerraFirmaCraft 4.2.11 (Minecraft 1.21.1). The seed only matches with the same world settings.\n");
+        sb.append("Found with TerraFirmaScout for TerraFirmaCraft 3.2 (Minecraft 1.20.1). The seed only matches with the same world settings.\n");
         return sb.toString();
     }
 }

@@ -23,7 +23,10 @@ public final class ScoutSearchEngine implements AutoCloseable {
     public ScoutSearchEngine(SearchWorldContext context,ScoutProfile profile) { this(context,profile,SearchLimits.DEFAULT); }
     public ScoutSearchEngine(SearchWorldContext context,ScoutProfile profile,SearchLimits limits) {
         this.limits=limits; this.workerCount=limits.workers()>0?limits.workers():ScoutConfig.WORKERS.get();
-        this.context=context; this.profile=profile;
+        this.context=context; this.profile=context.adapt(profile);
+        session.notice=(this.profile.extra().isEmpty()?"":ResourceAvailability.extraNotice(this.profile.extra())+" ")+ResourceAvailability.notice(this.profile.skipped());
+        if(TfgBridge.present()) com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: TerraFirmaGreg-Core detected; using its world generation{}",this.profile.extra().isEmpty()?"":" and also requiring "+this.profile.extra());
+        if(!this.profile.skipped().isEmpty()) com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: not requiring {} (this world does not generate them)",this.profile.skipped());
         workers=Executors.newFixedThreadPool(workerCount,r->{var t=new Thread(r,"TerraFirmaScout region scanner");t.setDaemon(true);return t;});
         maxSeeds=ScoutConfig.MAX_SEEDS.get(); finalists=ScoutConfig.FINALISTS.get(); targetChunks=ScoutConfig.TARGET_CHUNKS.get();
     }
@@ -153,7 +156,7 @@ public final class ScoutSearchEngine implements AutoCloseable {
             // Require real deterministic centers or region candidates for all costly resources before scheduling chunks.
             for(var c:List.of(com.cooper.terrafirmascout.score.Criterion.FRESHWATER,com.cooper.terrafirmascout.score.Criterion.FOREST,
                 com.cooper.terrafirmascout.score.Criterion.COPPER_VEIN,com.cooper.terrafirmascout.score.Criterion.TIN,
-                com.cooper.terrafirmascout.score.Criterion.FLUX,com.cooper.terrafirmascout.score.Criterion.GRAPHITE,com.cooper.terrafirmascout.score.Criterion.KAOLIN))
+                com.cooper.terrafirmascout.score.Criterion.FLUX,com.cooper.terrafirmascout.score.Criterion.GRAPHITE,com.cooper.terrafirmascout.score.Criterion.IRON,com.cooper.terrafirmascout.score.Criterion.COAL,com.cooper.terrafirmascout.score.Criterion.KAOLIN))
                 if(profile.requires(c)&&candidate.targets().get(c).isEmpty()) return null;
             session.pass2.incrementAndGet(); return candidate;
         } catch(ScanLimit.Abandoned e) {

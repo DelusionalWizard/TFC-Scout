@@ -19,7 +19,8 @@ public final class SeedChecker {
         session.stage="Preparing world settings"; var fingerprint=WorldgenFingerprint.compute(context);
         return check(context,profile,seed,fingerprint,budget,session);
     }
-    public static SeedResult check(SearchWorldContext context,ScoutProfile profile,long seed,String fingerprint,int budget,SearchSession session) throws Exception {
+    public static SeedResult check(SearchWorldContext context,ScoutProfile requested,long seed,String fingerprint,int budget,SearchSession session) throws Exception {
+        var profile=context.adapt(requested); session.notice=(profile.extra().isEmpty()?"":ResourceAvailability.extraNotice(profile.extra())+" ")+ResourceAvailability.notice(profile.skipped());
         session.checkpoint(); session.stage="Finding the start";
         var adapter=new TFCWorldgenAdapter(seed,context.settings(),context.biomes());
         ScanLimit.begin(LIMIT_NANOS,()->session.cancelled);

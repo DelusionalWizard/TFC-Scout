@@ -142,7 +142,7 @@ public final class ScoutWorldCreationScreen extends Screen {
     private void announceMatch(SeedResult result) {
         if(!prefs.matchSound) return;
         minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.PLAYER_LEVELUP,1.0f));
-        SystemToast.addOrUpdate(minecraft.getToasts(),SystemToast.SystemToastId.PERIODIC_NOTIFICATION,Component.literal("TerraFirmaScout: match found"),Component.literal("Seed "+result.seed()));
+        SystemToast.addOrUpdate(minecraft.getToasts(),SystemToast.SystemToastIds.PERIODIC_NOTIFICATION,Component.literal("TerraFirmaScout: match found"),Component.literal("Seed "+result.seed()));
     }
     private void applySeed() {
         if(busy||working()) return; var result=bestResult(); if(result==null||!result.selectable(result.fingerprint())) return;
@@ -166,7 +166,7 @@ public final class ScoutWorldCreationScreen extends Screen {
         if(engine!=null&&engine.session.finished&&message.equals("Stopping...")) message="Search stopped.";
         if(engine!=null) {
             long found=engine.session.verified.get();
-            if(found>announcedMatches) { announcedMatches=found; var all=engine.session.matches(); if(!all.isEmpty()) announceMatch(all.getLast()); }
+            if(found>announcedMatches) { announcedMatches=found; var all=engine.session.matches(); if(!all.isEmpty()) announceMatch(all.get(all.size()-1)); }
         }
         find.active=idle; profile.active=idle; custom.active=idle; score.active=!running&&!working; radius.active=!running&&!working;
         var s=engine==null?null:engine.session; boolean stopping=s!=null&&s.cancelled&&!s.finished; pause.active=running&&!stopping&&!busy; keep.active=running&&!stopping&&s.paused&&!busy; stop.active=(running&&!stopping)||working;
@@ -187,7 +187,7 @@ public final class ScoutWorldCreationScreen extends Screen {
         return h>0?String.format(Locale.ROOT,"%d:%02d:%02d",h,m,sec):String.format(Locale.ROOT,"%02d:%02d",m,sec);
     }
     @Override public void render(GuiGraphics g,int mouseX,int mouseY,float partialTick) {
-        super.render(g,mouseX,mouseY,partialTick);
+        renderBackground(g); super.render(g,mouseX,mouseY,partialTick);
         int left=Math.max(8,(width-500)/2),content=Math.min(500,width-16),textWidth=Math.max(60,content-84);
         g.drawCenteredString(font,title,width/2,12,0xffffff);
         g.drawString(font,"Min. match",left,63,0xd0d0d0); g.drawString(font,"Range",left+126,63,0xd0d0d0);
@@ -200,7 +200,7 @@ public final class ScoutWorldCreationScreen extends Screen {
             long slow=s.skippedSlow.get();
             drawClipped(g,"Seeds "+s.tested+rate+"   Promising "+s.pass1+"   Checked "+s.pass2+"   Matches "+s.verified+(slow>0?"   Slow skipped "+slow:""),left,98,0xb0b0b0,textWidth);
             if(!s.error.isEmpty()) drawClipped(g,s.error,left,110,0xff7777,textWidth);
-            else drawClipped(g,message,left,110,0xb0b0b0,textWidth);
+            else drawClipped(g,message.isEmpty()?s.notice:message,left,110,0xb0b0b0,textWidth);
         } else { drawClipped(g,checking!=null?message:"Scout keeps your requirements as they are.",left,98,0xb0b0b0,textWidth);
             try{drawClipped(g,currentProfile().description(),left,110,0xb0b0b0,textWidth);}catch(Exception ignored){} }
 
@@ -213,7 +213,7 @@ public final class ScoutWorldCreationScreen extends Screen {
             for(var c:Criterion.values()) {
                 var e=best.evidence().get(c); if(e==null) continue; int y=start+i++*24-scroll;
                 if(!best.profile().requires(c)) {
-                    drawClipped(g,c.label+": Not needed for this search",left,y,0x909090);
+                    drawClipped(g,c.label+(best.profile().skipped().contains(c)?": Skipped, this world does not generate it":": Not needed for this search"),left,y,0x909090);
                     continue;
                 }
                 String range=Double.isFinite(e.distance())?" — within "+bucket(e.distance()):"";
@@ -227,7 +227,7 @@ public final class ScoutWorldCreationScreen extends Screen {
     }
     private static String friendlyDetail(String detail){
         if(detail.startsWith("Found "))try{
-            var id=net.minecraft.resources.ResourceLocation.parse(detail.substring(6));
+            var id=new net.minecraft.resources.ResourceLocation(detail.substring(6));
             return "Found "+net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(id).getName().getString();
         }catch(Exception ignored){}
         return detail;
@@ -237,7 +237,7 @@ public final class ScoutWorldCreationScreen extends Screen {
     private void drawClipped(GuiGraphics g,String text,int x,int y,int color) { drawClipped(g,text,x,y,color,Math.max(30,width-x-12)); }
     private void drawClipped(GuiGraphics g,String text,int x,int y,int color,int maxWidth) { g.drawString(font,font.plainSubstrByWidth(text,maxWidth),x,y,color); }
     private static String bucket(double d) { return ReportText.bucket(d); }
-    @Override public boolean mouseScrolled(double x,double y,double horizontal,double vertical) {
+    @Override public boolean mouseScrolled(double x,double y,double vertical) {
         scroll=Math.max(0,Math.min(Math.max(0,Criterion.values().length*24-Math.max(0,height-200)),scroll-(int)(vertical*24))); return true;
     }
     @Override public void onClose() { savePrefs(); if(engine!=null)engine.close(); if(job!=null)job.cancel(); minecraft.setScreen(parent); }

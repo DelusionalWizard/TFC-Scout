@@ -4,7 +4,14 @@ import com.cooper.terrafirmascout.score.Criterion;
 public record ScoutProfile(String name,int minScore,int radius,double temperatureMin,double temperatureIdealMin,
     double temperatureIdealMax,double temperatureMax,double rainfallMin,double rainfallIdealMin,
     double rainfallIdealMax,double rainfallMax,double minimumLand,int landRadius,int terrainRadius,
-    int campRadius,int minimumCopperUnits,int minimumCopperPieces,boolean kaolinSameLandmass,Map<Criterion,Integer> distances,int minimumRoughness,WorldSpecification specification) {
+    int campRadius,int minimumCopperUnits,int minimumCopperPieces,boolean kaolinSameLandmass,Map<Criterion,Integer> distances,int minimumRoughness,WorldSpecification specification,Set<Criterion> skipped,Set<Criterion> extra) {
+    /** Without skipped requirements: the 20-argument form. */
+    public ScoutProfile(String name,int minScore,int radius,double temperatureMin,double temperatureIdealMin,double temperatureIdealMax,double temperatureMax,
+        double rainfallMin,double rainfallIdealMin,double rainfallIdealMax,double rainfallMax,double minimumLand,int landRadius,int terrainRadius,int campRadius,
+        int minimumCopperUnits,int minimumCopperPieces,boolean kaolinSameLandmass,Map<Criterion,Integer> distances,int minimumRoughness,WorldSpecification specification) {
+        this(name,minScore,radius,temperatureMin,temperatureIdealMin,temperatureIdealMax,temperatureMax,rainfallMin,rainfallIdealMin,rainfallIdealMax,rainfallMax,
+            minimumLand,landRadius,terrainRadius,campRadius,minimumCopperUnits,minimumCopperPieces,kaolinSameLandmass,distances,minimumRoughness,specification,Set.of(),Set.of());
+    }
     public ScoutProfile(String name,int minScore,int radius,double temperatureMin,double temperatureIdealMin,double temperatureIdealMax,double temperatureMax,
         double rainfallMin,double rainfallIdealMin,double rainfallIdealMax,double rainfallMax,double minimumLand,int landRadius,int terrainRadius,int campRadius,
         int minimumCopperUnits,int minimumCopperPieces,boolean kaolinSameLandmass,Map<Criterion,Integer> distances,int minimumRoughness) {
@@ -13,10 +20,22 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
     }
     public ScoutProfile withScoreAndRadius(int score,int searchRadius) {
         return new ScoutProfile(name,score,searchRadius,temperatureMin,temperatureIdealMin,temperatureIdealMax,temperatureMax,rainfallMin,rainfallIdealMin,rainfallIdealMax,rainfallMax,
-            minimumLand,landRadius,terrainRadius,campRadius,minimumCopperUnits,minimumCopperPieces,kaolinSameLandmass,distances,minimumRoughness,specification);
+            minimumLand,landRadius,terrainRadius,campRadius,minimumCopperUnits,minimumCopperPieces,kaolinSameLandmass,distances,minimumRoughness,specification,skipped,extra);
+    }
+    /** The same profile also requiring these resources (used for resources a particular pack makes essential). */
+    public ScoutProfile withExtra(Set<Criterion> more) {
+        var all=new HashSet<>(extra); all.addAll(more);
+        return new ScoutProfile(name,minScore,radius,temperatureMin,temperatureIdealMin,temperatureIdealMax,temperatureMax,rainfallMin,rainfallIdealMin,rainfallIdealMax,rainfallMax,
+            minimumLand,landRadius,terrainRadius,campRadius,minimumCopperUnits,minimumCopperPieces,kaolinSameLandmass,distances,minimumRoughness,specification,skipped,all);
+    }
+    /** The same profile with these requirements switched off. */
+    public ScoutProfile withSkipped(Set<Criterion> more) {
+        var all=new HashSet<>(skipped); all.addAll(more);
+        return new ScoutProfile(name,minScore,radius,temperatureMin,temperatureIdealMin,temperatureIdealMax,temperatureMax,rainfallMin,rainfallIdealMin,rainfallIdealMax,rainfallMax,
+            minimumLand,landRadius,terrainRadius,campRadius,minimumCopperUnits,minimumCopperPieces,kaolinSameLandmass,distances,minimumRoughness,specification,all,extra);
     }
     public ScoutProfile {
-        distances=Map.copyOf(distances); specification=Objects.requireNonNull(specification);
+        distances=Map.copyOf(distances); specification=Objects.requireNonNull(specification); skipped=skipped==null?Set.of():Set.copyOf(skipped); extra=extra==null?Set.of():Set.copyOf(extra);
         if(minScore<(!specification.enabled()&&SeedQuality.fromName(name)==SeedQuality.GOD?90:0)||minScore>100||radius<300||radius>12000||minimumLand<(specification.enabled()?0:SeedQuality.fromName(name)==SeedQuality.GOD?0.7:0.25)||minimumLand>1||minimumRoughness<0
             ||landRadius<(specification.enabled()?16:1000)||terrainRadius<16||campRadius<16||minimumCopperUnits<(specification.enabled()?1:100)||minimumCopperPieces<(specification.enabled()?1:10)
             ||!(temperatureMin<=temperatureIdealMin&&temperatureIdealMin<=temperatureIdealMax&&temperatureIdealMax<=temperatureMax)
@@ -29,10 +48,17 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
         for(var c:List.of(Criterion.FRESHWATER,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,
             Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN))
             if(!distances.containsKey(c)||distances.get(c)<1||(!specification.enabled()||specification.requirements().contains(c))&&distances.get(c)>radius) throw new IllegalArgumentException("Check the distance for "+c);
+        // Iron and coal came later; saved settings from older versions have no distance for them, which means the whole search area.
+        for(var c:List.of(Criterion.IRON,Criterion.COAL))
+            if(distances.containsKey(c)&&(distances.get(c)<1||(!specification.enabled()||specification.requirements().contains(c))&&distances.get(c)>radius)) throw new IllegalArgumentException("Check the distance for "+c);
     }
     public int distance(Criterion c) { return distances.getOrDefault(c,radius); }
     public SeedQuality quality() { return SeedQuality.fromName(name); }
-    public Set<Criterion> requiredCriteria() { return specification.enabled()?specification.requiredCriteria():quality().required(); }
+    public Set<Criterion> requiredCriteria() {
+        Set<Criterion> base=specification.enabled()?specification.requiredCriteria():quality().required();
+        if(skipped.isEmpty()&&extra.isEmpty()) return base;
+        var kept=new HashSet<>(base); kept.addAll(extra); kept.removeAll(skipped); return Collections.unmodifiableSet(kept);
+    }
     public boolean requires(Criterion c) { return requiredCriteria().contains(c); }
     public int analysisRadius() {
         int value=Math.max(128,distances.entrySet().stream().filter(e->requires(e.getKey())).mapToInt(Map.Entry::getValue).max().orElse(128));
@@ -58,13 +84,13 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
     public static ScoutProfile preset(SeedQuality quality) {
         var d=new EnumMap<Criterion,Integer>(Criterion.class);
         var keys=List.of(Criterion.FRESHWATER,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,
-            Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN);
+            Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN,Criterion.IRON,Criterion.COAL);
         int[] values=switch(quality) {
-            case GOD->new int[]{160,350,300,750,1000,1200,2000,4000,4000};
-            case GOOD->new int[]{250,500,500,1000,1500,2000,3000,5000,6000};
-            case AVERAGE->new int[]{400,800,800,1500,2500,3500,4500,7000,9000};
-            case HARD->new int[]{800,1500,2000,3000,3500,6000,7000,10000,12000};
-            case SUPER_HARD->new int[]{1500,2500,3500,5000,6000,8000,10000,12000,12000};
+            case GOD->new int[]{160,350,300,750,1000,1200,2000,4000,4000,3000,2500};
+            case GOOD->new int[]{250,500,500,1000,1500,2000,3000,5000,6000,4000,3500};
+            case AVERAGE->new int[]{400,800,800,1500,2500,3500,4500,7000,9000,6000,5000};
+            case HARD->new int[]{800,1500,2000,3000,3500,6000,7000,10000,12000,9000,8000};
+            case SUPER_HARD->new int[]{1500,2500,3500,5000,6000,8000,10000,12000,12000,12000,12000};
         };
         for(int i=0;i<keys.size();i++) d.put(keys.get(i),values[i]);
         return switch(quality) {

@@ -4,7 +4,7 @@ public enum Criterion {
     FRESHWATER("Freshwater",10), CLIMATE("Climate",10), TERRAIN("Building spot",8),
     FOREST("Trees",8), CLAY("Clay",8), OPEN_GROUND("Camp spot",0),
     STARTER_COPPER("Loose copper",15), COPPER_VEIN("Copper vein",7), FLUX("Flux",6),
-    TIN("Tin",8), DIVERSITY("Rock variety",5), GRAPHITE("Graphite",5),
+    TIN("Tin",8), DIVERSITY("Rock variety",5), GRAPHITE("Graphite",5), IRON("Iron",0), COAL("Coal",0),
     KAOLIN("Kaolin",7), CONNECTIVITY("Land route to kaolin",3), CHALLENGE("Rugged terrain",0), SPECIFICATION("Your wishlist",0);
     public final String label; public final int weight;
     Criterion(String label,int weight) { this.label=label; this.weight=weight; }

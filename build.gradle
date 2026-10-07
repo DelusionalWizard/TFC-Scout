@@ -1,32 +1,51 @@
-plugins { id 'java'; id 'net.neoforged.moddev' version '2.0.107' }
+plugins { id 'java'; id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'; id 'org.spongepowered.mixin' version '0.7.+' }
 group = 'com.cooper.terrafirmascout'
 version = '0.2.5'
-base { archivesName = 'terrafirmascout-1.21.1' }
-java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
-neoForge {
-    version = '21.1.234'
+base { archivesName = 'terrafirmascout-1.20.1' }
+java { toolchain.languageVersion = JavaLanguageVersion.of(17) }
+mixin { add sourceSets.main, 'terrafirmascout.refmap.json'; config 'terrafirmascout.mixins.json' }
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
     runs {
-        client { client(); gameDirectory = file('run/client') }
+        configureEach {
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'info'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods { terrafirmascout { source sourceSets.main } }
+        }
+        client { workingDirectory project.file('run/client') }
         smokeClient {
-            client(); gameDirectory = file('run/smoke')
-            systemProperty 'terrafirmascout.smoke', 'true'
-            systemProperty 'terrafirmascout.memoryTest', providers.gradleProperty('memoryTest').getOrElse('false')
-            systemProperty 'terrafirmascout.memoryScratchOnly', providers.gradleProperty('memoryScratchOnly').getOrElse('false')
-            systemProperty 'terrafirmascout.benchmarkAll', providers.gradleProperty('benchmarkAll').getOrElse('false')
-            systemProperty 'terrafirmascout.otherSeconds', providers.gradleProperty('otherSeconds').getOrElse('60')
-            systemProperty 'terrafirmascout.smokeSeconds', providers.gradleProperty('smokeSeconds').getOrElse('90')
-            systemProperty 'terrafirmascout.reportDir', project.projectDir.parentFile.absolutePath
+            parent runs.client
+            workingDirectory project.file('run/smoke')
+            taskName 'runSmokeClient'
+            property 'terrafirmascout.smoke', 'true'
+            property 'terrafirmascout.memoryTest', providers.gradleProperty('memoryTest').getOrElse('false')
+            property 'terrafirmascout.memoryScratchOnly', providers.gradleProperty('memoryScratchOnly').getOrElse('false')
+            property 'terrafirmascout.benchmarkAll', providers.gradleProperty('benchmarkAll').getOrElse('false')
+            property 'terrafirmascout.otherSeconds', providers.gradleProperty('otherSeconds').getOrElse('60')
+            property 'terrafirmascout.smokeSeconds', providers.gradleProperty('smokeSeconds').getOrElse('90')
+            property 'terrafirmascout.reportDir', project.projectDir.parentFile.absolutePath
         }
     }
-    mods { terrafirmascout { sourceSet sourceSets.main } }
 }
-repositories { mavenCentral() }
+repositories { mavenCentral(); flatDir { dir 'libs' } }
 dependencies {
-    implementation files('libs/tfc-4.2.11.jar')
-    runtimeOnly files('libs/patchouli.jar')
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.13'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    implementation fg.deobf('local:TerraFirmaCraft-Forge-1.20.1:3.2.25')
+    runtimeOnly fg.deobf('local:Patchouli-1.20.1-85-FORGE:1')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testImplementation 'com.google.code.gson:gson:2.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 test { useJUnitPlatform() }
-jar { exclude 'com/cooper/terrafirmascout/client/DevelopmentSmokeTest*'; exclude 'com/cooper/terrafirmascout/client/DevelopmentMemoryTest*'; from('LICENSE.txt'); from('THIRD-PARTY-NOTICES.md') }
+jar {
+    // -PwithHarness=true builds a separate test jar that keeps the development harness. Release jars never contain it.
+    if(providers.gradleProperty('withHarness').isPresent()) archiveClassifier = 'harness'
+    else { exclude 'com/cooper/terrafirmascout/client/DevelopmentSmokeTest*'; exclude 'com/cooper/terrafirmascout/client/DevelopmentMemoryTest*' }
+    from('LICENSE.txt'); from('THIRD-PARTY-NOTICES.md')
+    manifest { attributes 'MixinConfigs': 'terrafirmascout.mixins.json', 'Implementation-Version': project.version }
+    finalizedBy 'reobfJar'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

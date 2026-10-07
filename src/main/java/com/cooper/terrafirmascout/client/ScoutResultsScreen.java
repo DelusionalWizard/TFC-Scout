@@ -28,7 +28,7 @@ final class ScoutResultsScreen extends Screen {
                 addRenderableWidget(Button.builder(Component.literal(fit("Match | "+r.seed()+" | "+r.profile().displayName()+" | "+r.score()+"%",rowWidth-12)),b->{view.accept(r);minecraft.setScreen(parent);}).bounds(left,y,rowWidth,20).build());
             } else {
                 var r=close.get(i-matches.size()); var open=CandidateScorer.unconfirmedRequired(r.evidence(),r.profile());
-                String missing=open.isEmpty()?"":open.getFirst().label;
+                String missing=open.isEmpty()?"":open.get(0).label;
                 addRenderableWidget(Button.builder(Component.literal(fit("Close call | "+r.seed()+" | missing "+missing+" | "+r.score()+"%",rowWidth-94-12)),b->{view.accept(r);minecraft.setScreen(parent);}).bounds(left,y,rowWidth-94,20).build());
                 var look=addRenderableWidget(Button.builder(Component.literal("Look harder"),b->{lookCloser.accept(r);minecraft.setScreen(parent);}).bounds(left+rowWidth-90,y,90,20).build());
                 look.active=canLook.getAsBoolean(); lookButtons.add(look);
@@ -43,7 +43,7 @@ final class ScoutResultsScreen extends Screen {
         boolean can=canLook.getAsBoolean(); for(var b:lookButtons) b.active=can;
     }
     @Override public void render(GuiGraphics g,int x,int y,float tick) {
-        super.render(g,x,y,tick); g.drawCenteredString(font,title,width/2,12,0xffffff);
+        renderBackground(g); super.render(g,x,y,tick); g.drawCenteredString(font,title,width/2,12,0xffffff);
         boolean none=matches().isEmpty()&&closeCalls().isEmpty();
         g.drawCenteredString(font,font.plainSubstrByWidth(none?"Nothing yet. Confirmed matches and close calls from this search appear here.":"Pick a match to use it. A close call needs a closer look before it can be used.",width-16),width/2,28,0xb0b0b0);
         if(!none&&!canLook.getAsBoolean()) g.drawCenteredString(font,font.plainSubstrByWidth("Stop or finish the search to take a closer look at a close call.",width-16),width/2,42,0xffcc77);

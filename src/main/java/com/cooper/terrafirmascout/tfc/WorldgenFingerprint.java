@@ -8,7 +8,7 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.SharedConstants;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.neoforged.fml.ModList;
+import net.minecraftforge.fml.ModList;
 /** Conservative fingerprint: all mod archives and all supplied datapack bytes, not just guessed worldgen mods. */
 public final class WorldgenFingerprint {
     public static String compute(SearchWorldContext c) throws Exception {
@@ -20,7 +20,7 @@ public final class WorldgenFingerprint {
         for(var entry:c.creation().selectedDimensions().bake(c.creation().datapackDimensions()).dimensions().entrySet().stream()
             .sorted(Comparator.comparing(e->e.getKey().location().toString())).toList()) {
             add(digest,entry.getKey().location().toString());
-            add(digest,ChunkGenerator.CODEC.encodeStart(ops,entry.getValue().generator()).getOrThrow().toString());
+            add(digest,TfcCompat.orThrow(ChunkGenerator.CODEC.encodeStart(ops,entry.getValue().generator())).toString());
         }
         var files=new TreeSet<Path>(Comparator.comparing(Path::toString));
         for(var mod:ModList.get().getMods().stream().sorted(Comparator.comparing(m->m.getModId())).toList()) {
@@ -29,7 +29,7 @@ public final class WorldgenFingerprint {
         for(var path:files) hashPath(digest,path);
         if(c.dataPacks()!=null&&Files.exists(c.dataPacks())) hashPath(digest,c.dataPacks());
         // TFC common/server configuration can affect climate or resource semantics; hash conservatively.
-        var config=net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get();
+        var config=net.minecraftforge.fml.loading.FMLPaths.CONFIGDIR.get();
         if(Files.isDirectory(config)) try(var stream=Files.list(config)) {
             for(var path:stream.filter(p->p.getFileName().toString().startsWith("tfc-")).sorted().toList()) hashPath(digest,path);
         }

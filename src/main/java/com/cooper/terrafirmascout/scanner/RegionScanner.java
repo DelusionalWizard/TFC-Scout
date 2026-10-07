@@ -7,8 +7,8 @@ import net.minecraft.core.BlockPos;
 public final class RegionScanner {
     public static boolean accepts(TFCWorldgenAdapter a,BlockPos spawn,ScoutProfile p,SearchSession s) {
         int x=spawn.getX(),z=spawn.getZ(); var point=a.point(x,z);
-        if(!point.land()||(p.requires(com.cooper.terrafirmascout.score.Criterion.MAINLAND)&&(point.island()||point.barrierIsland()||point.mountain()||point.volcanic()))) return false;
-        var d=a.data(x,z); double t=d.getAverageSeaLevelTemp(x,z),r=d.getAverageRainfall(x,z);
+        if(!point.land()||(p.requires(com.cooper.terrafirmascout.score.Criterion.MAINLAND)&&(point.island()||point.mountain()||a.biome(x,z).isVolcanic()))) return false;
+        var d=a.data(x,z); double t=d.getAverageTemp(x,z),r=d.getRainfall(x,z);
         if(p.requires(com.cooper.terrafirmascout.score.Criterion.CLIMATE)&&(t<p.temperatureMin()-1||t>p.temperatureMax()+20||r<p.rainfallMin()-20||r>p.rainfallMax()+20)) return false;
         if(!p.requires(com.cooper.terrafirmascout.score.Criterion.LAND_RATIO))return true;
         int land=0,total=0;

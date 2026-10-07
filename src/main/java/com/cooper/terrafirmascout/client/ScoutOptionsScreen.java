@@ -38,7 +38,7 @@ final class ScoutOptionsScreen extends Screen {
     }
     private static int parse(String text,int max) { try { return Math.max(0,Math.min(max,Integer.parseInt(text))); } catch(NumberFormatException e) { return 0; } }
     @Override public void render(GuiGraphics g,int mouseX,int mouseY,float tick) {
-        super.render(g,mouseX,mouseY,tick);
+        renderBackground(g); super.render(g,mouseX,mouseY,tick);
         int w=Math.min(300,width-16),left=(width-w)/2;
         g.drawCenteredString(font,title,width/2,12,0xffffff);
         g.drawString(font,font.plainSubstrByWidth(speedHint(prefs.speed),w),left,57,0xa0a0a0);

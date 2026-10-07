@@ -2,7 +2,7 @@ package com.cooper.terrafirmascout.search;
 import java.util.*;
 import java.nio.file.*;
 import com.google.gson.*;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 /** History is separate from exports: public reports hide resource coordinates by default. */
 public final class ResultHistory {
     private static final Gson JSON=new GsonBuilder().registerTypeAdapter(Evidence.class,new EvidenceJson()).serializeNulls().setPrettyPrinting().create();

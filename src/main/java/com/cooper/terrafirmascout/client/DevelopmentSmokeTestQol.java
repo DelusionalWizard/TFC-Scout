@@ -43,9 +43,9 @@ final class DevelopmentSmokeTestQol {
                 var widgets=screen.children().stream().filter(w->w instanceof AbstractWidget a&&a.visible).map(w->(AbstractWidget)w).toList();
                 for(int i=0;i<widgets.size();i++) for(int j=i+1;j<widgets.size();j++) {
                     var a=widgets.get(i); var b=widgets.get(j);
-                    if(a.getX()<b.getRight()&&b.getX()<a.getRight()&&a.getY()<b.getBottom()&&b.getY()<a.getBottom())
+                    if(a.getX()<b.getX()+b.getWidth()&&b.getX()<a.getX()+a.getWidth()&&a.getY()<b.getY()+b.getHeight()&&b.getY()<a.getY()+a.getHeight())
                         throw new AssertionError(name+" at "+size[0]+"x"+size[1]+": '"+a.getMessage().getString()+"' overlaps '"+b.getMessage().getString()+"'");
-                    if(b.getRight()>size[0]||a.getRight()>size[0]||a.getBottom()>size[1]||b.getBottom()>size[1])
+                    if(b.getX()+b.getWidth()>size[0]||a.getX()+a.getWidth()>size[0]||a.getY()+a.getHeight()>size[1]||b.getY()+b.getHeight()>size[1])
                         throw new AssertionError(name+" at "+size[0]+"x"+size[1]+": a control is outside the window ('"+a.getMessage().getString()+"' / '"+b.getMessage().getString()+"')");
                 }
             }).get();
@@ -99,14 +99,14 @@ final class DevelopmentSmokeTestQol {
         for(var name:rocks) if(name.endsWith("_slab")||name.endsWith("_stairs")||name.endsWith("_wall")) throw new AssertionError("Spawn rock choices still offer a variant: "+name);
         return "  spawn rock choices: "+rocks.size()+" rocks ("+String.join(", ",rocks.subList(0,Math.min(8,rocks.size())))+", ...), no slab, stairs or wall variants\n";
     }
-    /** The wishlist's biome choices come from the world's own biome source: only TFC biomes, no vanilla ones. */
+    /** The wishlist's biome choices come from the world's own biome source: the world's biomes (tfc: and, in a pack such as TerraFirmaGreg, its own), never vanilla ones. */
     private static String biomeChoices(SearchWorldContext c) {
         var offered=BiomeChoices.forWorld(c.creation());
         int registered=c.creation().worldgenLoadContext().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).keySet().size();
         if(offered.isEmpty()) throw new AssertionError("The biome picker offers no biomes");
-        for(var id:offered) if(!id.startsWith("tfc:")) throw new AssertionError("The biome picker offers a non-TFC biome: "+id);
+        for(var id:offered) if(id.startsWith("minecraft:")) throw new AssertionError("The biome picker offers a vanilla biome: "+id);
         if(offered.size()>=registered) throw new AssertionError("The biome picker was not filtered ("+offered.size()+" of "+registered+")");
-        return "  biome choices: "+offered.size()+" TFC biomes offered out of "+registered+" registered; no vanilla biomes ("+String.join(", ",offered.subList(0,Math.min(5,offered.size())))+", ...)\n";
+        return "  biome choices: "+offered.size()+" world biomes offered out of "+registered+" registered; no vanilla biomes ("+String.join(", ",offered.subList(0,Math.min(5,offered.size())))+", ...)\n";
     }
     /** The buttons a player presses, in the order a player presses them: search, pause, stop, results. */
     private static String uiFlow(ScoutWorldCreationScreen mainScreen,Path out) throws Exception {
@@ -219,7 +219,7 @@ final class DevelopmentSmokeTestQol {
         // A close call from the search can get a closer look through the same job the screen uses.
         var close=engine2.session.closeCalls();
         if(!close.isEmpty()) {
-            var r=close.getFirst(); var job=new SeedCheckJob("closer",c,r.profile(),r.seed(),SeedChecker.closerLookBudget(24),r.fingerprint()); job.start(); await(()->job.done,600,"closer look");
+            var r=close.get(0); var job=new SeedCheckJob("closer",c,r.profile(),r.seed(),SeedChecker.closerLookBudget(24),r.fingerprint()); job.start(); await(()->job.done,600,"closer look");
             if(!job.error.isEmpty()) throw new AssertionError("Closer look failed: "+job.error);
             if(job.result.selectable(fingerprint)&&!CandidateScorer.allHardVerified(job.result.evidence(),r.profile())) throw new AssertionError("Closer look selected an unconfirmed result");
             report.append("  closer look on search close call ").append(r.seed()).append(": ").append(r.status()).append(" -> ").append(job.result.status()).append('\n');
@@ -228,10 +228,10 @@ final class DevelopmentSmokeTestQol {
         // Screens: populate one session with confirmed matches and close calls, then check layout and look at them.
         var session=engine1.session; for(var r:engine2.session.closeCalls()) session.addCloseCall(r);
         if(session.closeCalls().isEmpty()) {
-            var map=new EnumMap<Criterion,Evidence>(Criterion.class); map.putAll(found.getFirst().evidence()); map.put(Criterion.CLIMATE,Evidence.absent("Not found in 24 chunks checked; this resource is still unconfirmed"));
-            session.addCloseCall(new SeedResult(found.getFirst().seed()+1,0,64,0,fingerprint,easy,map)); report.append("  (screen check used one synthetic close call for layout)\n");
+            var map=new EnumMap<Criterion,Evidence>(Criterion.class); map.putAll(found.get(0).evidence()); map.put(Criterion.CLIMATE,Evidence.absent("Not found in 24 chunks checked; this resource is still unconfirmed"));
+            session.addCloseCall(new SeedResult(found.get(0).seed()+1,0,64,0,fingerprint,easy,map)); report.append("  (screen check used one synthetic close call for layout)\n");
         }
-        ResultHistory.setNote(found.getFirst(),"near the river, flat land to the east");
+        ResultHistory.setNote(found.get(0),"near the river, flat land to the east");
         mc.submit(()-> { try { var f=ScoutWorldCreationScreen.class.getDeclaredField("savedResult"); f.setAccessible(true); f.set(mainScreen,null); } catch(ReflectiveOperationException e) { throw new RuntimeException(e); } }).get();
         showEngine.accept(engine1); show(mc,mainScreen); shot(mc,out,"qol-main.png");
         if(!button(mainScreen,"Results (").getMessage().getString().equals("Results ("+(session.matches().size()+session.closeCalls().size())+")")) throw new AssertionError("Results button count wrong");
@@ -246,7 +246,7 @@ final class DevelopmentSmokeTestQol {
         shot(mc,out,"qol-results.png"); layout(mc,results,"results screen",report);
         mc.submit(results::onClose).get(); Thread.sleep(500);
         var history=new HistoryScreen(mainScreen,r->{}); show(mc,history); shot(mc,out,"qol-saved-seeds.png"); layout(mc,history,"saved seeds screen",report);
-        show(mc,new NoteScreen(history,found.getFirst())); shot(mc,out,"qol-note.png");
+        show(mc,new NoteScreen(history,found.get(0))); shot(mc,out,"qol-note.png");
         show(mc,mainScreen); showEngine.accept(null);
         report.append("  screens: options, results, saved seeds and note open and close; the search was undisturbed\n");
         return report.toString();

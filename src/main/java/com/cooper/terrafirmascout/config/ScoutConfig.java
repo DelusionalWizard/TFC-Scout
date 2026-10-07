@@ -3,14 +3,14 @@ import java.util.*;
 import com.cooper.terrafirmascout.profile.ScoutProfile;
 import com.cooper.terrafirmascout.profile.SeedQuality;
 import com.cooper.terrafirmascout.score.Criterion;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 public final class ScoutConfig {
-    public static final ModConfigSpec COMMON,CLIENT;
-    public static final ModConfigSpec.IntValue WORKERS,TARGET_CHUNKS,MAX_SEEDS,FINALISTS;
-    public static final ModConfigSpec.BooleanValue REVEAL;
-    public static final Map<String,ModConfigSpec.DoubleValue> CUSTOM=new LinkedHashMap<>();
+    public static final ForgeConfigSpec COMMON,CLIENT;
+    public static final ForgeConfigSpec.IntValue WORKERS,TARGET_CHUNKS,MAX_SEEDS,FINALISTS;
+    public static final ForgeConfigSpec.BooleanValue REVEAL;
+    public static final Map<String,ForgeConfigSpec.DoubleValue> CUSTOM=new LinkedHashMap<>();
     static {
-        var b=new ModConfigSpec.Builder(); b.push("search");
+        var b=new ForgeConfigSpec.Builder(); b.push("search");
         WORKERS=b.comment("How many seeds to shortlist at once. Close-up world checks still run one at a time.")
             .defineInRange("max_workers",Math.max(1,Math.min(4,Runtime.getRuntime().availableProcessors()-2)),1,32);
         TARGET_CHUNKS=b.comment("Chunks to check for each resource. Higher values can find more supplies, but take longer.")
@@ -19,10 +19,10 @@ public final class ScoutConfig {
         FINALISTS=b.defineInRange("finalists_per_batch",5,1,20); b.pop();
         for(var quality:SeedQuality.values()) defineProfile(b,quality.id,ScoutProfile.preset(quality));
         defineProfile(b,"custom",ScoutProfile.beginner()); COMMON=b.build();
-        var client=new ModConfigSpec.Builder(); client.push("display");
+        var client=new ForgeConfigSpec.Builder(); client.push("display");
         REVEAL=client.define("reveal_locations",false); client.pop(); CLIENT=client.build();
     }
-    private static void defineProfile(ModConfigSpec.Builder b,String name,ScoutProfile p) {
+    private static void defineProfile(ForgeConfigSpec.Builder b,String name,ScoutProfile p) {
         b.push(name);
         define(b,name,"min_score",p.minScore(),p.quality()==SeedQuality.GOD?90:0,100); define(b,name,"search_radius",p.radius(),300,12000);
         define(b,name,"temperature_min",p.temperatureMin(),-20,40); define(b,name,"temperature_ideal_min",p.temperatureIdealMin(),-20,40);
@@ -36,7 +36,7 @@ public final class ScoutConfig {
         for(var c:p.distances().keySet().stream().sorted().toList()) define(b,name,c.name().toLowerCase(Locale.ROOT)+"_distance",p.distance(c),1,12000);
         b.pop();
     }
-    private static void define(ModConfigSpec.Builder b,String group,String key,double value,double min,double max) {
+    private static void define(ForgeConfigSpec.Builder b,String group,String key,double value,double min,double max) {
         CUSTOM.put(group+"."+key,b.defineInRange(key,value,min,max));
     }
     public static ScoutProfile profile(String name) {

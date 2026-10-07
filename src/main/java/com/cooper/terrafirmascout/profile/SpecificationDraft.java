@@ -4,7 +4,7 @@ import java.nio.file.*;
 import com.google.gson.GsonBuilder;
 import com.cooper.terrafirmascout.config.ScoutConfig;
 import com.cooper.terrafirmascout.score.Criterion;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 public final class SpecificationDraft {
     public Map<String,Double> numbers=new LinkedHashMap<>();
     public Set<Criterion> required=new HashSet<>();
@@ -42,7 +42,11 @@ public final class SpecificationDraft {
     }
     public static SpecificationDraft load(ScoutProfile fallback) {
         var path=FMLPaths.GAMEDIR.get().resolve("terrafirmascout/specification.json");
-        try { var d=new GsonBuilder().create().fromJson(Files.readString(path),SpecificationDraft.class); d.build(); return d; }
+        try {
+            var d=new GsonBuilder().create().fromJson(Files.readString(path),SpecificationDraft.class);
+            fromPreset(fallback).numbers.forEach(d.numbers::putIfAbsent); // settings saved by an older version lack newer limits such as the iron and coal distances
+            d.build(); return d;
+        }
         catch(Exception e) { return fromPreset(fallback); }
     }
 }

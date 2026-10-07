@@ -1,5 +1,14 @@
 # Change history
 
+## 0.2.5 for Minecraft 1.20.1 / Forge (branch forge-1.20.1, 7 October 2026, not published)
+- Port of 0.2.5 to Minecraft 1.20.1, Forge 47.4.x, TFC 3.2.25 and Java 17, aimed at the TerraFirmaGreg Modern pack. Same features as the 1.21.1 build.
+- Scout now reads the world's own data: only ore veins the world can generate count, and what a vein provides comes from the blocks it places. Resources a world cannot generate are not required, with a notice. Plain TFC behaves as before.
+- New optional resources: Iron and Coal.
+- TerraFirmaGreg-Core (only when installed): Scout follows its changed world generation and manages its global world seed, and its Dream, Easy and Fair presets also require iron and coal. Searches in that pack are slower.
+- Forest types are TFC 3.2's five types; tree cover 0-4 follows their order.
+- Fixed while testing in a real install: mixin refmap, a hook that crashed TFC at startup, and a resource finder that used development-only method names. Screens now draw their own background on 1.20.1.
+- Tests: 41 unit tests; real-install smoke suites with TFC alone and with the full TerraFirmaGreg Modern 0.13.10 pack. Not tested on a dedicated server.
+
 ## 0.2.5 picker fixes (7 October 2026, commit 1bb00de; included in the published 0.2.5 jar)
 - The spawn-rock picker no longer offers slab, stairs or wall variants (only real rock types such as andesite, basalt, chalk).
 - The spawn-biome picker offers only biomes the world's biome source can produce (125 tfc: biomes), not the vanilla ones that never generate in a TerraFirmaCraft world.

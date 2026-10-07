@@ -68,7 +68,7 @@ class QualityOfLifeTest {
         for(int i=0;i<SearchSession.MAX_CLOSE_CALLS+5;i++) session.addCloseCall(withMisses(100+i,VerificationState.INFERRED,misses.get(i%misses.size())));
         assertEquals(SearchSession.MAX_CLOSE_CALLS,session.closeCalls().size());
         var scores=session.closeCalls().stream().map(SeedResult::score).toList(); assertEquals(scores.stream().sorted(Comparator.reverseOrder()).toList(),scores,"best first");
-        session.removeCloseCall(session.closeCalls().getFirst().seed()); assertEquals(SearchSession.MAX_CLOSE_CALLS-1,session.closeCalls().size());
+        session.removeCloseCall(session.closeCalls().get(0).seed()); assertEquals(SearchSession.MAX_CLOSE_CALLS-1,session.closeCalls().size());
     }
     @Test void aCloseCallIsNeverSelectableNoMatterItsScore() {
         for(var q:SeedQuality.values()) {
@@ -154,8 +154,55 @@ class QualityOfLifeTest {
             var old=new ScoutProfile("Good",current.minScore(),current.radius(),current.temperatureMin(),current.temperatureIdealMin(),current.temperatureIdealMax(),current.temperatureMax(),current.rainfallMin(),current.rainfallIdealMin(),
                 current.rainfallIdealMax(),current.rainfallMax(),current.minimumLand(),current.landRadius(),current.terrainRadius(),current.campRadius(),current.minimumCopperUnits(),current.minimumCopperPieces(),true,current.distances(),current.minimumRoughness());
             var saved=new SeedResult(77,0,64,0,FINGERPRINT,old,complete()); ResultHistory.save(saved);
-            var loaded=ResultHistory.load(); assertEquals(1,loaded.size()); assertEquals("Easy Start",loaded.getFirst().profile().displayName()); assertEquals(SeedQuality.GOOD,loaded.getFirst().profile().quality());
-            assertTrue(loaded.getFirst().selectable(FINGERPRINT));
+            var loaded=ResultHistory.load(); assertEquals(1,loaded.size()); assertEquals("Easy Start",loaded.get(0).profile().displayName()); assertEquals(SeedQuality.GOOD,loaded.get(0).profile().quality());
+            assertTrue(loaded.get(0).selectable(FINGERPRINT));
         } finally { ResultHistory.useRoot(null); }
     }
+
+    @Test void requirementsAWorldCannotMeetAreSkippedAndSurviveSaving(@TempDir Path dir) throws Exception {
+        var preset=ScoutProfile.preset(SeedQuality.GOOD);
+        assertTrue(preset.requires(Criterion.TIN)&&preset.requires(Criterion.GRAPHITE)&&preset.requires(Criterion.COPPER_VEIN));
+        var skipped=preset.withSkipped(Set.of(Criterion.TIN,Criterion.GRAPHITE));
+        assertFalse(skipped.requires(Criterion.TIN)); assertFalse(skipped.requires(Criterion.GRAPHITE)); assertTrue(skipped.requires(Criterion.COPPER_VEIN));
+        // A seed that confirms everything else is usable even though tin and graphite could never be found.
+        var map=complete(); map.put(Criterion.TIN,Evidence.absent("never generated")); map.put(Criterion.GRAPHITE,Evidence.absent("never generated"));
+        assertTrue(new SeedResult(5,0,64,0,FINGERPRINT,skipped,map).selectable(FINGERPRINT));
+        assertFalse(new SeedResult(5,0,64,0,FINGERPRINT,preset,map).selectable(FINGERPRINT));
+        ResultHistory.useRoot(dir);
+        try {
+            ResultHistory.save(new SeedResult(5,0,64,0,FINGERPRINT,skipped,map));
+            var loaded=ResultHistory.load(); assertEquals(1,loaded.size()); assertEquals(Set.of(Criterion.TIN,Criterion.GRAPHITE),loaded.get(0).profile().skipped());
+            assertTrue(loaded.get(0).selectable(FINGERPRINT));
+        } finally { ResultHistory.useRoot(null); }
+    }
+    @Test void savedResultsFromBeforeSkippingStillLoad() {
+        var tree=com.google.gson.JsonParser.parseString(ResultHistory.encode(new SeedResult(6,0,64,0,FINGERPRINT,ScoutProfile.preset(SeedQuality.GOOD),complete()))).getAsJsonObject();
+        assertNotNull(tree.getAsJsonObject("profile").remove("skipped")); // what a file written before this feature looks like
+        var json=tree.toString();
+        assertFalse(json.contains("skipped"));
+        var loaded=ResultHistory.decode(json); assertTrue(loaded.profile().skipped().isEmpty()); assertTrue(loaded.profile().requires(Criterion.TIN));
+    }
+
+    @Test void oreBlocksAreRecognisedByTheWordsInTheirNames() {
+        var rl=(java.util.function.Function<String,net.minecraft.resources.ResourceLocation>)net.minecraft.resources.ResourceLocation::new;
+        var resource=(java.util.function.Function<String,Criterion>)id->com.cooper.terrafirmascout.tfc.VeinCatalog.resourceOf(rl.apply(id));
+        assertEquals(Criterion.TIN,resource.apply("gtceu:andesite_tin_ore")); assertEquals(Criterion.TIN,resource.apply("gtceu:dolomite_cassiterite_ore"));
+        assertNull(resource.apply("minecraft:tinted_glass"));
+        assertEquals(Criterion.COPPER_VEIN,resource.apply("tfc:ore/poor_malachite/andesite")); assertEquals(Criterion.COPPER_VEIN,resource.apply("gtceu:chert_copper_ore"));
+        assertEquals(Criterion.IRON,resource.apply("tfc:ore/normal_hematite/granite")); assertEquals(Criterion.IRON,resource.apply("gtceu:basalt_goethite_ore"));
+        assertEquals(Criterion.COAL,resource.apply("tfc:ore/bituminous_coal/shale")); assertEquals(Criterion.COAL,resource.apply("gtceu:granite_lignite_ore"));
+        assertEquals(Criterion.GRAPHITE,resource.apply("tfc:ore/graphite/schist")); assertEquals(Criterion.KAOLIN,resource.apply("tfc:white_kaolin_clay"));
+        assertNull(resource.apply("tfc:rock/raw/granite"));
+    }
+    @Test void extraRequirementsAreOnlyThereWhenAdded() {
+        var preset=ScoutProfile.preset(SeedQuality.GOOD);
+        assertFalse(preset.requires(Criterion.IRON)); assertFalse(preset.requires(Criterion.COAL));
+        var extra=preset.withExtra(Set.of(Criterion.IRON,Criterion.COAL)); assertTrue(extra.requires(Criterion.IRON)&&extra.requires(Criterion.COAL));
+        assertFalse(extra.withSkipped(Set.of(Criterion.COAL)).requires(Criterion.COAL)); assertTrue(extra.withSkipped(Set.of(Criterion.COAL)).requires(Criterion.IRON));
+        // older saved settings had no iron or coal distance: that means the whole search area, and they still load
+        assertEquals(preset.radius(),new ScoutProfile(preset.name(),preset.minScore(),preset.radius(),preset.temperatureMin(),preset.temperatureIdealMin(),preset.temperatureIdealMax(),preset.temperatureMax(),preset.rainfallMin(),preset.rainfallIdealMin(),
+            preset.rainfallIdealMax(),preset.rainfallMax(),preset.minimumLand(),preset.landRadius(),preset.terrainRadius(),preset.campRadius(),preset.minimumCopperUnits(),preset.minimumCopperPieces(),preset.kaolinSameLandmass(),
+            withoutIronAndCoal(preset.distances()),preset.minimumRoughness()).distance(Criterion.IRON));
+    }
+    private static Map<Criterion,Integer> withoutIronAndCoal(Map<Criterion,Integer> distances) { var copy=new EnumMap<Criterion,Integer>(distances); copy.remove(Criterion.IRON); copy.remove(Criterion.COAL); return copy; }
 }

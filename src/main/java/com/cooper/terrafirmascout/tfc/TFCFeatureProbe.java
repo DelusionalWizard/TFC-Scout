@@ -6,9 +6,9 @@ import com.cooper.terrafirmascout.search.*;
 import com.cooper.terrafirmascout.scanner.DetailedScanner;
 import net.dries007.tfc.common.recipes.TFCRecipeTypes;
 import net.dries007.tfc.common.TFCTags;
-import net.dries007.tfc.util.Helpers;
+import net.dries007.tfc.common.recipes.inventory.ItemStackInventory;
+import net.dries007.tfc.util.climate.OverworldClimateModel;
 import net.dries007.tfc.world.ChunkGeneratorExtension;
-import net.dries007.tfc.world.chunkdata.ChunkData;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.PlayerRespawnLogic;
@@ -21,13 +21,14 @@ import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 /** Positive findings only. A bounded unsuccessful scan stays INFERRED, never becomes a fabricated absence proof. */
 public final class TFCFeatureProbe {
     private final SearchWorldContext context; private final ScoutProfile profile; private final SearchSession session;
-    private final int targetBudget;
+    private final int targetBudget; private VeinCatalog catalog=null;
     public TFCFeatureProbe(SearchWorldContext context,ScoutProfile profile,SearchSession session,int targetBudget) {
         this.context=context; this.profile=profile; this.session=session; this.targetBudget=targetBudget;
     }
     public SeedResult verify(SeedCandidate candidate,String fingerprint) throws Exception {
         session.checkpoint();
         try(var world=new ScratchWorld(context,candidate.adapter().seed)) {
+            catalog=VeinCatalog.of(world.level.registryAccess(),world.level.getChunkSource().getGenerator().getBiomeSource());
             var spawn=naturalSpawn(world);
             if(spawn==null) return result(candidate,candidate.center(),fingerprint,Criterion.SPAWN,Evidence.failed("No natural safe spawn within bounded native search"));
             var adapter=candidate.adapter();
@@ -42,9 +43,9 @@ public final class TFCFeatureProbe {
             verifyLandscape(adapter,spawn,evidence);
             if(profile.requiredCriteria().stream().anyMatch(c->evidence.get(c).state()==VerificationState.FAILED))
                 return new SeedResult(adapter.seed,spawn.getX(),spawn.getY(),spawn.getZ(),fingerprint,profile,evidence);
-            var climate=ChunkData.get(world.level.getChunk(spawn));
-            float temperature=Helpers.adjustAverageTemperatureByElevation(spawn.getY(),climate.getAverageSeaLevelTemp(spawn),63);
-            double rain=climate.getAverageRainfall(spawn);
+            var climate=TfcCompat.data(world.level,world.level.getChunk(spawn));
+            float temperature=OverworldClimateModel.getAdjustedAverageTempByElevation(spawn.getY(),climate.getAverageTemp(spawn));
+            double rain=climate.getRainfall(spawn);
             if(profile.requires(Criterion.CLIMATE)&&(temperature<profile.temperatureMin()||temperature>profile.temperatureMax()||rain<profile.rainfallMin()||rain>profile.rainfallMax())) {
                 evidence.put(Criterion.CLIMATE,Evidence.failed("The yearly climate is outside your limits"));
                 return new SeedResult(adapter.seed,spawn.getX(),spawn.getY(),spawn.getZ(),fingerprint,profile,evidence);
@@ -55,7 +56,7 @@ public final class TFCFeatureProbe {
             if(profile.requires(Criterion.CHALLENGE)) {
                 int low=Integer.MAX_VALUE,high=Integer.MIN_VALUE; var cp=new ChunkPos(spawn);
                 for(int dx=-1;dx<=1;dx++) for(int dz=-1;dz<=1;dz++) { session.checkpoint();
-                    var heights=ChunkData.get(world.chunk(cp.x+dx,cp.z+dz)).getRockData().getSurfaceHeight();
+                    var heights=TfcCompat.data(world.level,world.chunk(cp.x+dx,cp.z+dz)).getRockData().getSurfaceHeight();
                     for(int h:heights) { low=Math.min(low,h); high=Math.max(high,h); }
                 }
                 int span=high-low; boolean valid=span>=profile.minimumRoughness();
@@ -66,12 +67,12 @@ public final class TFCFeatureProbe {
             var pieces=new HashSet<BlockPos>(); int[] copperUnits={0};
             var missed=EnumSet.noneOf(Criterion.class);
             for(var criterion:List.of(Criterion.FRESHWATER,Criterion.TERRAIN,Criterion.OPEN_GROUND,Criterion.FOREST,Criterion.CLAY,
-                Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN)) {
+                Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.IRON,Criterion.COAL,Criterion.KAOLIN)) {
                 if(!profile.requires(criterion)) { evidence.put(criterion,Evidence.absent("Not needed for this search")); continue; }
                 session.stage="Checking "+criterion.label; session.checkpoint();
                 var targets=expandedTargets(refined,criterion,spawn,world);
                 if(criterion==Criterion.OPEN_GROUND&&evidence.get(Criterion.TERRAIN).state()==VerificationState.VERIFIED) {
-                    var terrain=evidence.get(Criterion.TERRAIN); targets.addFirst(new BlockPos(terrain.x(),terrain.y(),terrain.z()));
+                    var terrain=evidence.get(Criterion.TERRAIN); targets.add(0,new BlockPos(terrain.x(),terrain.y(),terrain.z()));
                 }
                 int tested=0;
                 for(var target:targets) {
@@ -109,7 +110,7 @@ public final class TFCFeatureProbe {
     private BlockPos naturalSpawn(ScratchWorld world) {
         var ext=(ChunkGeneratorExtension)world.level.getChunkSource().getGenerator();
         var center=new ChunkPos(ext.findSpawnBiome(new XoroshiroRandomSource(world.level.getSeed())));
-        // Same spiral and same respawn routine as TFC 4.2.11 ForgeEventHandler.onCreateWorldSpawn.
+        // Same spiral and same respawn routine as TFC 3.2.25 ForgeEventHandler.onCreateWorldSpawn.
         int x=0,z=0,xStep=0,zStep=-1;
         for(int tries=0;tries<1024;tries++) { session.checkpoint();
             if(x>-16&&x<=16&&z>-16&&z<=16) {
@@ -136,7 +137,7 @@ public final class TFCFeatureProbe {
         var point=a.point(spawn.getX(),spawn.getZ());
         String biome=a.biome(spawn.getX(),spawn.getZ()).key().location().getPath();
         boolean extreme=biome.contains("badlands")||biome.contains("mountain")||biome.contains("canyon")||biome.contains("volcano");
-        boolean mainland=point.land()&&!point.island()&&!point.barrierIsland()&&!point.mountain()&&!point.volcanic()&&!extreme&&ratio>=profile.minimumLand();
+        boolean mainland=point.land()&&!point.island()&&!point.mountain()&&!a.biome(spawn.getX(),spawn.getZ()).isVolcanic()&&!extreme&&ratio>=profile.minimumLand();
         if(mainland) mainland=connectedCoverage(a,spawn,r)>=profile.minimumLand();
         e.put(Criterion.MAINLAND,mainland?verified(0,spawn,1,"A connected mainland start, away from extreme terrain"):Evidence.failed("This start is an island, extreme terrain, or a broken-up coast"));
     }
@@ -158,7 +159,7 @@ public final class TFCFeatureProbe {
         var chunks=new LinkedHashMap<Long,BlockPos>();
         var points=new ArrayList<>(c.targets().get(criterion));
         var generator=world.level.getChunkSource().getGenerator();
-        if(generator instanceof net.dries007.tfc.world.TFCChunkGenerator tfc&&Set.of(Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.TIN,Criterion.GRAPHITE).contains(criterion)) {
+        if(generator instanceof net.dries007.tfc.world.TFCChunkGenerator tfc&&Set.of(Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.TIN,Criterion.GRAPHITE,Criterion.IRON,Criterion.COAL).contains(criterion)) {
             var costs=new HashMap<BlockPos,Double>();
             for(var pos:points){session.checkpoint();int height=(int)tfc.createHeightFillerForChunk(new ChunkPos(pos)).sampleHeight(pos.getX(),pos.getZ());
                 double cost=Double.POSITIVE_INFINITY;
@@ -176,7 +177,7 @@ public final class TFCFeatureProbe {
         }
 
         // Sample each distinct native center before spending the budget on a single deposit's halo.
-        int halo=Set.of(Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN).contains(criterion)?2:0;
+        int halo=Set.of(Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,Criterion.TIN,Criterion.GRAPHITE,Criterion.IRON,Criterion.COAL,Criterion.KAOLIN).contains(criterion)?2:0;
         for(int ring=0;ring<=halo;ring++) {
             for(var p:points) {
                 var cp=new ChunkPos(p);
@@ -202,13 +203,13 @@ public final class TFCFeatureProbe {
         for(int lx=0;lx<16;lx++) for(int lz=0;lz<16;lz++) {
             int x=cp.getMinBlockX()+lx,z=cp.getMinBlockZ()+lz; double d=Math.hypot((double)x-spawn.getX(),(double)z-spawn.getZ()); if(d>max) continue;
             int top=chunk.getHeight(Heightmap.Types.WORLD_SURFACE_WG,lx,lz);
-            int ground=ChunkData.get(chunk).getRockData().getSurfaceHeight()[lz*16+lx];
+            int ground=TfcCompat.data(w.level,chunk).getRockData().getSurfaceHeight()[lz*16+lx];
             if(c==Criterion.TERRAIN||c==Criterion.OPEN_GROUND) {
                 if(lx>0||lz>0) continue;
                 var patch=buildablePatch(chunk,spawn,c); if(patch!=null) return verified(DetailedScanner.distance(spawn,patch),patch,1,"A dry "+(c==Criterion.TERRAIN?profile.specification().terrainSize():profile.specification().campSize())+"-block square, with clear headroom; grass at least "+Math.round(profile.specification().grassFraction()*100)+"%; height difference at most "+profile.specification().maximumSlope());
                 continue;
             }
-            int min=Set.of(Criterion.COPPER_VEIN,Criterion.TIN,Criterion.GRAPHITE,Criterion.FLUX).contains(c)?chunk.getMinBuildHeight():Math.max(chunk.getMinBuildHeight(),ground-12);
+            int min=Set.of(Criterion.COPPER_VEIN,Criterion.TIN,Criterion.GRAPHITE,Criterion.IRON,Criterion.COAL,Criterion.FLUX).contains(c)?chunk.getMinBuildHeight():Math.max(chunk.getMinBuildHeight(),ground-12);
             for(int y=Math.min(top+1,chunk.getMaxBuildHeight()-1);y>=min;y--) {
                 var pos=new BlockPos(x,y,z); var state=chunk.getBlockState(pos); var id=BuiltInRegistries.BLOCK.getKey(state.getBlock());
                 boolean found=false;
@@ -219,15 +220,14 @@ public final class TFCFeatureProbe {
                 if(c==Criterion.KAOLIN) found=id.getNamespace().equals("tfc")&&Set.of("white_kaolin_clay","pink_kaolin_clay","red_kaolin_clay","kaolin_clay_grass").contains(id.getPath());
                 if(c==Criterion.FLUX) found=id.getNamespace().equals("tfc")&&(id.getPath().startsWith("rock/raw/")||id.getPath().startsWith("rock/hardened/"))
                     &&Set.of("limestone","dolomite","chalk","marble").contains(id.getPath().substring(id.getPath().lastIndexOf('/')+1));
-                if(c==Criterion.COPPER_VEIN) found=isOre(id.getPath(),Set.of("native_copper","malachite","tetrahedrite"))&&id.getNamespace().equals("tfc");
-                if(c==Criterion.TIN) found=isOre(id.getPath(),Set.of("cassiterite"))&&id.getNamespace().equals("tfc");
-                if(c==Criterion.GRAPHITE) found=id.getNamespace().equals("tfc")&&id.getPath().startsWith("ore/graphite/");
+                // The ore blocks the world's own veins place (TFC's, or a pack's such as GregTech ores), not a fixed list of names.
+                if(c==Criterion.COPPER_VEIN||c==Criterion.TIN||c==Criterion.GRAPHITE||c==Criterion.IRON||c==Criterion.COAL) found=catalog.oreBlocks(c).contains(id);
                 if(c==Criterion.STARTER_COPPER&&id.getNamespace().equals("tfc")&&Set.of("ore/small_native_copper","ore/small_malachite","ore/small_tetrahedrite").contains(id.getPath())
                     &&y>=ground-2&&state.getFluidState().isEmpty()&&pieces.add(pos)) {
-                    var item=new ItemStack(state.getBlock().asItem());
+                    var item=new ItemStackInventory(new ItemStack(state.getBlock().asItem()));
                     for(var recipe:context.creation().dataPackResources().getRecipeManager().getAllRecipesFor(TFCRecipeTypes.HEATING.get())) {
-                        if(recipe.value().matches(item)) {
-                            var fluid=recipe.value().assembleFluid(item);
+                        if(recipe.matches(item,w.level)) {
+                            var fluid=recipe.assembleFluid(item);
                             if(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString().equals("tfc:metal/copper")) units[0]+=fluid.getAmount();
                             break;
                         }
@@ -255,7 +255,7 @@ public final class TFCFeatureProbe {
             for(int x=sx;x<sx+size&&valid;x++)for(int z=sz;z<sz+size;z++) {
                 int y=decorated.getFirstAvailable(x,z)-1;var pos=new BlockPos(chunk.getPos().getMinBlockX()+x,y,chunk.getPos().getMinBlockZ()+z);
                 var state=chunk.getBlockState(pos);var id=BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();boolean grassy=state.is(TFCTags.Blocks.GRASS);
-                boolean firm=grassy||state.is(TFCTags.Blocks.DIRT)||id.startsWith("clay/")||id.startsWith("rock/raw/")||id.startsWith("rock/hardened/");
+                boolean firm=grassy||state.is(net.minecraft.tags.BlockTags.DIRT)||id.startsWith("clay/")||id.startsWith("rock/raw/")||id.startsWith("rock/hardened/");
                 if(DetailedScanner.distance(spawn,pos)>max||!firm||!state.getFluidState().isEmpty()||!chunk.getBlockState(pos.above()).getFluidState().isEmpty()){valid=false;break;}
                 for(int above=1;above<=3;above++){
                     var clearance=chunk.getBlockState(pos.above(above));
@@ -267,11 +267,6 @@ public final class TFCFeatureProbe {
             if(valid&&high-low<=spec.maximumSlope()&&grass>=size*size*spec.grassFraction())return new BlockPos(chunk.getPos().getBlockX(sx+size/2),high+1,chunk.getPos().getBlockZ(sz+size/2));
         }
         return null;
-    }
-    private static boolean isOre(String id,Set<String> ores) {
-        if(!id.startsWith("ore/")||id.contains("/small_")) return false;
-        var parts=id.split("/"); if(parts.length<3) return false;
-        String name=parts[1].replaceFirst("^(poor_|normal_|rich_)",""); return ores.contains(name);
     }
     private double proximity(Criterion c,double d) {
         double ideal=c==Criterion.GRAPHITE?2500:c==Criterion.KAOLIN?3000:profile.distance(c)*0.6;

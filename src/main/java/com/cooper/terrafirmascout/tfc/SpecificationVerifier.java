@@ -3,15 +3,14 @@ import java.util.*;
 import com.cooper.terrafirmascout.profile.WorldSpecification;
 import com.cooper.terrafirmascout.search.*;
 import com.cooper.terrafirmascout.score.VerificationState;
-import net.dries007.tfc.world.chunkdata.ChunkData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 public final class SpecificationVerifier {
     public static Evidence verify(WorldSpecification spec,TFCWorldgenAdapter a,ScratchWorld w,BlockPos spawn,SearchSession session) {
-        var data=ChunkData.get(w.level.getChunk(spawn));
+        var data=TfcCompat.data(w.level,w.level.getChunk(spawn));
         String rock=BuiltInRegistries.BLOCK.getKey(data.getRockData().getSurfaceRock(spawn.getX(),spawn.getZ()).raw()).getPath().replace("rock/raw/","");
         String biome=a.biome(spawn.getX(),spawn.getZ()).key().location().toString(),forest=data.getForestType().getSerializedName();
-        int density=data.getForestType().getDensity();
+        int density=TfcCompat.density(data.getForestType());
         if(!spec.spawnMatches(biome,rock,forest,density,spawn.getY()))return Evidence.failed("The spawn biome, rock, forest or height does not match your wishlist");
         var found=new TreeSet<String>();found.add(biome);int r=spec.biomeRadius();
         if(!spec.biomesMatch(found)) {

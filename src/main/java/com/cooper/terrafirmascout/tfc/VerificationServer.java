@@ -7,7 +7,6 @@ import net.minecraft.server.level.progress.ChunkProgressListener;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.datafix.DataFixers;
-import net.minecraft.util.debugchart.SampleLogger;
 import net.minecraft.world.level.storage.LevelStorageSource;
 /** An unbound, unticked server used solely by a seed-local ServerLevel. No sockets are opened. */
 final class VerificationServer extends MinecraftServer {
@@ -19,10 +18,6 @@ final class VerificationServer extends MinecraftServer {
     @Override public int getOperatorUserPermissionLevel() { return 0; }
     @Override public int getFunctionCompilationLevel() { return 0; }
     @Override public boolean shouldRconBroadcast() { return false; }
-    @Override protected SampleLogger getTickTimeLogger() { return new SampleLogger() {
-        public void logFullSample(long[] values) {} public void logSample(long value) {} public void logPartialSample(long value,int index) {}
-    }; }
-    @Override public boolean isTickTimeLoggingEnabled() { return false; }
     @Override public SystemReport fillServerSystemReport(SystemReport r) { return r; }
     @Override public boolean isDedicatedServer() { return false; }
     @Override public int getRateLimitPacketsPerSecond() { return 0; }

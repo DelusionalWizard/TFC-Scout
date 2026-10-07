@@ -15,7 +15,7 @@ import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.biome.BiomeManager;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.storage.*;
@@ -25,7 +25,10 @@ public final class ScratchWorld implements AutoCloseable {
     private final Path root; private final LevelStorageSource.LevelStorageAccess storage;
     private final java.util.concurrent.ExecutorService executor=ScratchExecutors.create();
     private final PackRepository packs; private final CloseableResourceManager resources;
+    private TfgBridge.Hold seedHold;
     public ScratchWorld(SearchWorldContext c,long seed) throws Exception {
+        // With TerraFirmaGreg the world's generator reads one global seed for as long as it generates, so no other seed may be set until this world is closed.
+        seedHold=TfgBridge.hold(seed);
         root=Files.createTempDirectory("terrafirmascout-");
         LevelStorageSource.LevelStorageAccess tempStorage=null; PackRepository tempPacks=null;
         CloseableResourceManager tempResources=null; ServerLevel tempLevel=null;
@@ -53,10 +56,11 @@ public final class ScratchWorld implements AutoCloseable {
         } catch(Exception e) {
             try { if(tempLevel!=null) tempLevel.close(); } catch(Exception cleanup) { e.addSuppressed(cleanup); }
             try { ScratchExecutors.close(executor); } catch(Exception cleanup) { e.addSuppressed(cleanup); }
-            if(tempLevel!=null) NativeThreadCaches.clearBiomeSource(tempLevel.getChunkSource().getGenerator().getBiomeSource());
+            if(tempLevel!=null) NativeThreadCaches.clearGenerator(tempLevel.getChunkSource().getGenerator());
             try { if(tempResources!=null) tempResources.close(); } catch(Exception cleanup) { e.addSuppressed(cleanup); }
             try { if(tempStorage!=null) tempStorage.close(); } catch(Exception cleanup) { e.addSuppressed(cleanup); }
             try { deleteTree(root); } catch(Exception cleanup) { e.addSuppressed(cleanup); }
+            seedHold.close();
             throw e;
         }
     }
@@ -65,10 +69,10 @@ public final class ScratchWorld implements AutoCloseable {
         try { level.close(); } finally {
             try { ScratchExecutors.close(executor); } finally {
                 try {
-                    NativeThreadCaches.clearBiomeSource(level.getChunkSource().getGenerator().getBiomeSource());
+                    NativeThreadCaches.clearGenerator(level.getChunkSource().getGenerator());
                     ((ServerAccess)(Object)server).scout$levels().clear();
                 } finally {
-                    try { resources.close(); } finally { try { storage.close(); } finally { deleteTree(root); } }
+                    try { resources.close(); } finally { try { storage.close(); } finally { try { deleteTree(root); } finally { seedHold.close(); } } }
                 }
             }
         }

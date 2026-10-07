@@ -18,6 +18,12 @@ public final class ScanLimit {
     public static synchronized void end() { if(CURRENT.get()!=null) { CURRENT.remove(); open--; } }
     /** A paused scan should not count the pause against its time. */
     public static void restart() { var s=CURRENT.get(); if(s!=null) s.start=System.nanoTime(); }
+    /** Waiting for another scan to finish does not count against a seed's time: only a cancel ends the wait. */
+    public static void checkCancelled() {
+        if(open==0) return;
+        var s=CURRENT.get();
+        if(s!=null&&s.cancelled.getAsBoolean()) throw new Abandoned();
+    }
     /** Called from TFC's river builder. */
     public static void check() {
         if(open==0) return;

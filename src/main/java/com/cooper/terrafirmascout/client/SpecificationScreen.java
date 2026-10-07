@@ -69,7 +69,7 @@ final class SpecificationScreen extends Screen {
     private void collect() {fields.forEach((key,box)->draft.numbers.put(key,Double.parseDouble(box.getValue())));}
     private void position() {for(int i=0;i<rows.size();i++){var row=rows.get(i);row.setY(80+i*24-offset);row.visible=row.getY()>=78&&row.getY()+20<=height-54;}}
     @Override public void render(GuiGraphics g,int x,int y,float tick) {
-        super.render(g,x,y,tick);g.drawCenteredString(font,title,width/2,12,0xffffff);
+        renderBackground(g); super.render(g,x,y,tick);g.drawCenteredString(font,title,width/2,12,0xffffff);
         String help=switch(tab){case "Resources"->"Tick what you need. Scout will check each choice before offering a seed.";case "Nearby"->"Pick nearby biomes. Leave this empty if you do not mind.";
             case "Spawn"->"Start in one of these biomes. Leave empty for any biome.";case "Rocks"->"Pick the rock beneath your spawn. Leave empty for any rock.";
             case "Forest"->"Pick the kind of forest you want around spawn.";default->"Distances use blocks. For land and grass, 0.5 means 50%.";};
@@ -78,6 +78,6 @@ final class SpecificationScreen extends Screen {
         if(error!=null&&error.isEmpty()&&rows.size()*24>height-136)g.drawCenteredString(font,"Scroll to see more",width/2,height-43,0xa0a0a0);
         g.drawCenteredString(font,font.plainSubstrByWidth(error==null?"Check your wishlist":error,width-20),width/2,height-43,0xff7777);
     }
-    @Override public boolean mouseScrolled(double x,double y,double h,double v){offset=Math.max(0,Math.min(Math.max(0,rows.size()*24-(height-136)),offset-(int)(v*24)));position();return true;}
+    @Override public boolean mouseScrolled(double x,double y,double v){offset=Math.max(0,Math.min(Math.max(0,rows.size()*24-(height-136)),offset-(int)(v*24)));position();return true;}
     @Override public void onClose(){minecraft.setScreen(parent);}
 }

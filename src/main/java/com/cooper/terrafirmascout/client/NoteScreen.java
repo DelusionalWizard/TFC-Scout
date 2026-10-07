@@ -17,7 +17,7 @@ final class NoteScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Cancel"),b->minecraft.setScreen(parent)).bounds(width/2+4,92,96,20).build());
     }
     @Override public void render(GuiGraphics g,int x,int y,float tick) {
-        super.render(g,x,y,tick); g.drawCenteredString(font,title,width/2,20,0xffffff);
+        renderBackground(g); super.render(g,x,y,tick); g.drawCenteredString(font,title,width/2,20,0xffffff);
         g.drawCenteredString(font,"A short reminder, up to 60 characters. Leave it empty to remove the note.",width/2,40,0xb0b0b0);
         if(!error.isEmpty()) g.drawCenteredString(font,font.plainSubstrByWidth(error,width-16),width/2,124,0xff7777);
     }

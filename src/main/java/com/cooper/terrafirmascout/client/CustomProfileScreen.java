@@ -34,12 +34,12 @@ final class CustomProfileScreen extends Screen {
         int row=0; for(var box:fields.values()) { box.setY(42+row++*24-offset); box.visible=box.getY()>=40&&box.getY()+18<=height-52; }
     }
     @Override public void render(GuiGraphics g,int x,int y,float tick) {
-        super.render(g,x,y,tick); g.drawCenteredString(font,title,width/2,12,0xffffff);
+        renderBackground(g); super.render(g,x,y,tick); g.drawCenteredString(font,title,width/2,12,0xffffff);
         g.drawCenteredString(font,"All God resources and a land route are still required.",width/2,27,0xb0b0b0);
         int row=0; for(var e:fields.entrySet()) { int top=42+row++*24-offset; if(e.getValue().visible)
             g.drawString(font,SpecificationScreen.settingLabel(e.getKey()),Math.max(8,width/2-200),top+4,0xd0d0d0); }
         g.drawCenteredString(font,font.plainSubstrByWidth(error,width-20),width/2,height-43,0xff7777);
     }
-    @Override public boolean mouseScrolled(double x,double y,double h,double v) { offset=Math.max(0,Math.min(Math.max(0,values.size()*24-(height-96)),offset-(int)(v*24))); position(); return true; }
+    @Override public boolean mouseScrolled(double x,double y,double v) { offset=Math.max(0,Math.min(Math.max(0,values.size()*24-(height-96)),offset-(int)(v*24))); position(); return true; }
     @Override public void onClose() { minecraft.setScreen(parent); }
 }

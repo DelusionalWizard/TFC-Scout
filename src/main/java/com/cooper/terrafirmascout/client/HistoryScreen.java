@@ -37,7 +37,7 @@ final class HistoryScreen extends Screen {
         var next=addRenderableWidget(Button.builder(Component.literal("Next"),b->{page++;armedDelete=null;rebuildWidgets();}).bounds(width/2+84,height-52,70,20).build());next.active=(page+1)*count<list.size();
         addRenderableWidget(Button.builder(Component.literal("Back"),b->minecraft.setScreen(parent)).bounds(width/2-75,height-27,150,20).build());
     }
-    @Override public void render(GuiGraphics g,int x,int y,float tick){super.render(g,x,y,tick);g.drawCenteredString(font,title,width/2,12,0xffffff);
+    @Override public void render(GuiGraphics g,int x,int y,float tick){renderBackground(g); super.render(g,x,y,tick);g.drawCenteredString(font,title,width/2,12,0xffffff);
         g.drawCenteredString(font,results.isEmpty()?"No saved seeds yet. Find a match and Scout will save it here.":"Pick a seed. Scout will check your current settings before using it.",width/2,28,0xb0b0b0);
         if(!notice.isEmpty())g.drawCenteredString(font,font.plainSubstrByWidth(notice,width-16),width/2,42,0x88ee99);}
     @Override public void onClose(){minecraft.setScreen(parent);}

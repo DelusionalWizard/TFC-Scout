@@ -8,10 +8,10 @@ import com.cooper.terrafirmascout.tfc.*;
 import com.cooper.terrafirmascout.search.*;
 import com.cooper.terrafirmascout.scanner.*;
 import com.cooper.terrafirmascout.profile.*;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.worldselection.*;
@@ -21,22 +21,31 @@ import net.minecraft.resources.*;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.chunk.*;
 /** Opt-in development harness. Gradle excludes this class from release jars. */
-@EventBusSubscriber(modid="terrafirmascout",value=Dist.CLIENT)
+@Mod.EventBusSubscriber(modid="terrafirmascout",value=Dist.CLIENT)
 public final class DevelopmentSmokeTest {
     private static int state,ticks;
     /** Lets the screenshot tool keep the state machine from swapping the screen it is showing. */
     static void holdState(int value) { state=value; }
+    /** Finds the tab bar by type, because a real install names vanilla fields differently from the development environment. */
+    static java.lang.reflect.Field tabBarField() throws NoSuchFieldException {
+        for(var field:CreateWorldScreen.class.getDeclaredFields()) if(field.getType()==net.minecraft.client.gui.components.tabs.TabNavigationBar.class) return field;
+        throw new NoSuchFieldException("TabNavigationBar");
+    }
     private static CreateWorldScreen creationScreen; private static ScoutWorldCreationScreen mainScreen;
     private static volatile ScoutSearchEngine benchmarkEngine;
-    @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
+    @SubscribeEvent public static void tick(TickEvent.ClientTickEvent event) {
+        if(event.phase!=TickEvent.Phase.END) return;
         if(!Boolean.getBoolean("terrafirmascout.smoke")) return;
         var mc=Minecraft.getInstance();
         try {
-            if(state==0&&mc.screen!=null&&mc.getOverlay()==null) { state=1; CreateWorldScreen.openFresh(mc,mc.screen); }
+            if(state==0&&mc.screen!=null&&mc.getOverlay()==null) { state=1;
+                // Forge throws, in development only, when a server config is read before a server has started. A published game returns the defaults instead.
+                net.minecraftforge.fml.config.ConfigTracker.INSTANCE.loadConfigs(net.minecraftforge.fml.config.ModConfig.Type.SERVER,net.minecraftforge.fml.loading.FMLPaths.CONFIGDIR.get());
+                CreateWorldScreen.openFresh(mc,mc.screen); }
             else if(state==1&&mc.screen instanceof CreateWorldScreen parent) {
                 state=3; // Prevent re-entry while Minecraft pumps tasks during world-preset setup.
                 var registry=parent.getUiState().getSettings().worldgenLoadContext().registryOrThrow(Registries.WORLD_PRESET);
-                var preset=registry.getHolderOrThrow(ResourceKey.create(Registries.WORLD_PRESET,ResourceLocation.fromNamespaceAndPath("tfc","overworld")));
+                var preset=registry.getHolderOrThrow(ResourceKey.create(Registries.WORLD_PRESET,new ResourceLocation("tfc","overworld")));
                 parent.getUiState().setWorldType(new WorldCreationUiState.WorldTypeEntry(preset));
                 var context=SearchWorldContext.capture(parent.getUiState().getSettings(),((CreateWorldAccess)parent).scout$dataPackDir(),"tfc:overworld");
                 creationScreen=parent;mainScreen=new ScoutWorldCreationScreen(parent); mc.setScreen(mainScreen); state=2;
@@ -77,12 +86,12 @@ public final class DevelopmentSmokeTest {
             final int index=i;
             mc.submit(()-> {
                 try {
-                    var f=CreateWorldScreen.class.getDeclaredField("tabNavigationBar");f.setAccessible(true);
+                    var f=DevelopmentSmokeTest.tabBarField();f.setAccessible(true);
                     ((net.minecraft.client.gui.components.tabs.TabNavigationBar)f.get(creationScreen)).selectTab(index,false);
                     var buttons=creationScreen.children().stream().filter(w->w instanceof net.minecraft.client.gui.components.Button b&&b.getMessage().getString().equals("TerraFirmaScout")).toList();
                     if(buttons.size()!=(index==1?1:0))throw new AssertionError("Scout on wrong tab: "+index);
                     if(index==1) {
-                        var b=(net.minecraft.client.gui.components.Button)buttons.getFirst();
+                        var b=(net.minecraft.client.gui.components.Button)buttons.get(0);
                         if(b.getWidth()!=310||Math.abs(b.getX()+155-creationScreen.width/2)>1||b.getY()+b.getHeight()>creationScreen.height-40)throw new AssertionError("Scout button misaligned");
                     }
                 }catch(ReflectiveOperationException e){throw new RuntimeException(e);}
@@ -93,7 +102,7 @@ public final class DevelopmentSmokeTest {
         }
         mc.submit(()-> {
             try {
-                var f=CreateWorldScreen.class.getDeclaredField("tabNavigationBar");f.setAccessible(true);
+                var f=DevelopmentSmokeTest.tabBarField();f.setAccessible(true);
                 ((net.minecraft.client.gui.components.tabs.TabNavigationBar)f.get(creationScreen)).selectTab(1,false);
                 var b=(net.minecraft.client.gui.components.Button)creationScreen.children().stream().filter(w->w instanceof net.minecraft.client.gui.components.Button button&&button.getMessage().getString().equals("TerraFirmaScout")).findFirst().orElseThrow();
                 b.onPress();
@@ -107,27 +116,28 @@ public final class DevelopmentSmokeTest {
             checkWorldTabs();
             if(Boolean.getBoolean("terrafirmascout.memoryTest")) DevelopmentMemoryTest.run(c);
             if(System.getenv("SCOUT_SHOTS")!=null) { DevelopmentSmokeTestShots.run(mainScreen,creationScreen,Path.of(System.getProperty("terrafirmascout.reportDir")).resolve("screenshots")); return; }
+            if(System.getenv("SCOUT_DIAG")!=null) { DevelopmentSmokeTestDiag.run(c,Path.of(System.getProperty("terrafirmascout.reportDir"))); return; }
             if(System.getenv("SCOUT_SLOW_SEED_TEST")!=null) slowSeedTest(c);
             long seed=123456789L; var a=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
             var b=new TFCWorldgenAdapter(seed,c.settings(),c.biomes());
             var spawn=a.spawnBiome(); if(!spawn.equals(b.spawnBiome())) throw new AssertionError("spawn biome differs");
             for(int x=-1024;x<=1024;x+=128) for(int z=-1024;z<=1024;z+=128) {
                 if(!a.biome(x,z).key().equals(b.biome(x,z).key())) throw new AssertionError("biome differs");
-                if(Float.floatToIntBits(a.data(x,z).getAverageRainfall(x,z))!=Float.floatToIntBits(b.data(x,z).getAverageRainfall(x,z))) throw new AssertionError("rain differs");
+                if(Float.floatToIntBits(a.data(x,z).getRainfall(x,z))!=Float.floatToIntBits(b.data(x,z).getRainfall(x,z))) throw new AssertionError("rain differs");
                 if(!a.rock(x,64,z,64).equals(b.rock(x,64,z,64))) throw new AssertionError("rock differs");
             }
             a.releaseThreadCaches();
             if(!spawn.equals(a.spawnBiome())) throw new AssertionError("spawn changed after cache release");
             for(int x=-1024;x<=1024;x+=128) for(int z=-1024;z<=1024;z+=128) {
                 if(!a.biome(x,z).key().equals(b.biome(x,z).key())) throw new AssertionError("biome changed after cache release");
-                if(Float.floatToIntBits(a.data(x,z).getAverageRainfall(x,z))!=Float.floatToIntBits(b.data(x,z).getAverageRainfall(x,z))) throw new AssertionError("rain changed after cache release");
+                if(Float.floatToIntBits(a.data(x,z).getRainfall(x,z))!=Float.floatToIntBits(b.data(x,z).getRainfall(x,z))) throw new AssertionError("rain changed after cache release");
                 if(!a.rock(x,64,z,64).equals(b.rock(x,64,z,64))) throw new AssertionError("rock changed after cache release");
             }
             String first,second; long start=System.nanoTime(); var cp=new ChunkPos(spawn);
             try(var w=new ScratchWorld(c,seed)) {
                 var chunk=w.chunk(cp.x,cp.z); first=hash(chunk);
-                var data=net.dries007.tfc.world.chunkdata.ChunkData.get(chunk);
-                if(Math.abs(data.getAverageSeaLevelTemp(spawn)-a.data(spawn.getX(),spawn.getZ()).getAverageSeaLevelTemp(spawn))>0.0001)
+                var data=TfcCompat.data(w.level,chunk);
+                if(Math.abs(data.getAverageTemp(spawn)-a.data(spawn.getX(),spawn.getZ()).getAverageTemp(spawn))>0.0001)
                     throw new AssertionError("adapter differs from real chunk climate");
             }
             try(var w=new ScratchWorld(c,seed)) { second=hash(w.chunk(cp.x,cp.z)); }
@@ -164,11 +174,11 @@ public final class DevelopmentSmokeTest {
                 benchmark+="Specification exact verification, history round-trip and coordinate-hidden export: PASSED\n";
                 var exactSpawn=new BlockPos(match.spawnX(),match.spawnY(),match.spawnZ());
                 try(var world=new ScratchWorld(c,match.seed())){
-                    var nativeData=net.dries007.tfc.world.chunkdata.ChunkData.get(world.level.getChunk(exactSpawn));
+                    var nativeData=TfcCompat.data(world.level,world.level.getChunk(exactSpawn));
                     draft.spawnBiomes.add(a.biome(exactSpawn.getX(),exactSpawn.getZ()).key().location().toString());
                     draft.spawnRocks.add(BuiltInRegistries.BLOCK.getKey(nativeData.getRockData().getSurfaceRock(exactSpawn.getX(),exactSpawn.getZ()).raw()).getPath().replace("rock/raw/",""));
                     draft.forestTypes.add(nativeData.getForestType().getSerializedName());
-                    draft.numbers.put("forest_density_min",(double)nativeData.getForestType().getDensity());draft.numbers.put("forest_density_max",(double)nativeData.getForestType().getDensity());
+                    draft.numbers.put("forest_density_min",(double)TfcCompat.density(nativeData.getForestType()));draft.numbers.put("forest_density_max",(double)TfcCompat.density(nativeData.getForestType()));
                     draft.numbers.put("spawn_elevation_min",(double)exactSpawn.getY());draft.numbers.put("spawn_elevation_max",(double)exactSpawn.getY());
                     if(SpecificationVerifier.verify(draft.build().specification(),a,world,exactSpawn,new SearchSession()).state()!=com.cooper.terrafirmascout.score.VerificationState.VERIFIED)
                         throw new AssertionError("Exact native spawn choices failed");
@@ -190,7 +200,7 @@ public final class DevelopmentSmokeTest {
                 for(var grade:new SeedQuality[]{SeedQuality.GOD,SeedQuality.GOOD,SeedQuality.AVERAGE,SeedQuality.HARD,SeedQuality.SUPER_HARD})
                     benchmark+=benchmark(c,ScoutProfile.preset(grade),grade==SeedQuality.GOD?Integer.getInteger("terrafirmascout.smokeSeconds",300):Integer.getInteger("terrafirmascout.otherSeconds",60));
             }else benchmark=benchmark(c,ScoutProfile.beginner(),Integer.getInteger("terrafirmascout.smokeSeconds",90));
-            var report="Smoke test PASSED\nWorld-tab alignment, Game/More absence and button click: PASSED\nTFC 4.2.11 / Minecraft 1.21.1 / NeoForge 21.1.234\nSeed: "+seed+
+            var report="Smoke test PASSED\nWorld-tab alignment, Game/More absence and button click: PASSED\nTFC 3.2.25 / Minecraft 1.20.1 / Forge 47.4.13\nSeed: "+seed+
                 "\nNative spawn biome: "+spawn+"\n289 repeat region samples: equal, including after native cache release\nFeature-stage SHA-256: "+first+
                 "\nReal chunk climate matches adapter\nRepeat feature-stage block hash: equal\nWorldgen fingerprint: "+fingerprint+"\n"+benchmark+"Total smoke elapsed: "+(System.nanoTime()-start)/1e9+" seconds\n";
             Files.writeString(output("smoke-test.txt"),report); System.out.println(report);

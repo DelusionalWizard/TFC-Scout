@@ -40,7 +40,7 @@ final class DevelopmentSmokeTestShots {
             Thread.sleep(6000);
             // 1. Create World, World tab, with the Scout button.
             DevelopmentSmokeTest.holdState(4);
-            mc.submit(()-> { mc.setScreen(creation); try { var f=CreateWorldScreen.class.getDeclaredField("tabNavigationBar"); f.setAccessible(true); ((TabNavigationBar)f.get(creation)).selectTab(1,false); } catch(ReflectiveOperationException e) { throw new RuntimeException(e); } }).get();
+            mc.submit(()-> { mc.setScreen(creation); try { var f=DevelopmentSmokeTest.tabBarField(); f.setAccessible(true); ((TabNavigationBar)f.get(creation)).selectTab(1,false); } catch(ReflectiveOperationException e) { throw new RuntimeException(e); } }).get();
             Thread.sleep(1800); shot(mc,out,"01-create-world-scout-button.png");
             mc.submit(()->mc.setScreen(mainScreen)).get(); DevelopmentSmokeTest.holdState(2); Thread.sleep(1500);
             // 2. The search screen with a starting style, and a different style.
@@ -75,7 +75,7 @@ final class DevelopmentSmokeTestShots {
             // 5. Results, Options, Saved seeds.
             press(mc,mainScreen,"Results"); Thread.sleep(1200); shot(mc,out,"06-results-matches-and-close-calls.png"); mc.submit(()->mc.screen.onClose()).get(); Thread.sleep(600);
             press(mc,mainScreen,"Options"); Thread.sleep(1000); shot(mc,out,"07-options.png"); mc.submit(()->mc.screen.onClose()).get(); Thread.sleep(600);
-            ResultHistory.setNote(search.session.matches().getFirst(),"flat land east of the river");
+            ResultHistory.setNote(search.session.matches().get(0),"flat land east of the river");
             press(mc,mainScreen,"Saved seeds"); Thread.sleep(1200); shot(mc,out,"08-saved-seeds.png"); mc.submit(()->mc.screen.onClose()).get(); Thread.sleep(600);
             // 6. The wishlist editor.
             var biomes=com.cooper.terrafirmascout.tfc.BiomeChoices.forWorld(creation.getUiState().getSettings());

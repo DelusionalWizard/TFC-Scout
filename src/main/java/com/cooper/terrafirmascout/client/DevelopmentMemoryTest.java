@@ -7,7 +7,7 @@ import java.util.concurrent.*;
 /** Opt-in retention regression; explicit GC is confined to this development harness. */
 public final class DevelopmentMemoryTest {
     public static void run(SearchWorldContext context) throws Exception {
-        var report=new StringBuilder("TFC 4.2.11 native seed cache retention regression\nTwo persistent scanner threads; identical deterministic biome/climate/rock queries.\nHeap measured after explicit GC at checkpoints; these are focused native scans, not full resource searches.\n");
+        var report=new StringBuilder("TFC 3.2.25 native seed cache retention regression\nTwo persistent scanner threads; identical deterministic biome/climate/rock queries.\nHeap measured after explicit GC at checkpoints; these are focused native scans, not full resource searches.\n");
         if(!Boolean.getBoolean("terrafirmascout.memoryScratchOnly")) {
             sample(context,true,100,new StringBuilder());
             long baseline=sample(context,false,100,report);
@@ -77,7 +77,7 @@ public final class DevelopmentMemoryTest {
             for(int i=0;i<9;i++) {
                 int x=(i%3-1)*512,z=(i/3-1)*512;
                 hash=31*hash+adapter.biome(x,z).key().location().hashCode();
-                hash=31*hash+Float.floatToIntBits(adapter.data(x,z).getAverageRainfall(x,z));
+                hash=31*hash+Float.floatToIntBits(adapter.data(x,z).getRainfall(x,z));
                 hash=31*hash+adapter.rock(x,64,z,64).hashCode();
             }
             return hash;

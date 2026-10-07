@@ -7,7 +7,7 @@ public final class SearchSession {
     public static final int MAX_CLOSE_CALLS=12;
     public final AtomicLong tested=new AtomicLong(),pass1=new AtomicLong(),pass2=new AtomicLong(),verified=new AtomicLong(),skippedSlow=new AtomicLong();
     public final AtomicReference<SeedResult> best=new AtomicReference<>();
-    public volatile String stage="Starting",error="";
+    public volatile String stage="Starting",error="",notice="";
     public volatile boolean paused,cancelled,finished,verifierWaiting; private volatile long endedNanos;
     private final Object monitor=new Object();
     private final List<SeedResult> matches=new CopyOnWriteArrayList<>(),closeCalls=new CopyOnWriteArrayList<>();
@@ -53,7 +53,7 @@ public final class SearchSession {
     public static boolean isCloseCall(SeedResult r) {
         var open=com.cooper.terrafirmascout.score.CandidateScorer.unconfirmedRequired(r.evidence(),r.profile());
         if(open.size()!=1) return false;
-        var only=r.evidence().get(open.getFirst()); // a row that was never reached is not a budget miss: nothing says a closer look would help
+        var only=r.evidence().get(open.get(0)); // a row that was never reached is not a budget miss: nothing says a closer look would help
         return only!=null&&only.state()==com.cooper.terrafirmascout.score.VerificationState.INFERRED;
     }
     private static double rank(SeedResult r) {

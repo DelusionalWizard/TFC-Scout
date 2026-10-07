@@ -5,6 +5,8 @@ import com.cooper.terrafirmascout.profile.ScoutProfile;
 import com.cooper.terrafirmascout.score.*;
 import com.cooper.terrafirmascout.search.*;
 import com.cooper.terrafirmascout.tfc.TFCWorldgenAdapter;
+import com.cooper.terrafirmascout.tfc.TfcCompat;
+import com.cooper.terrafirmascout.tfc.VeinCatalog;
 import net.dries007.tfc.world.feature.vein.*;
 import net.dries007.tfc.world.placement.ClimatePlacement;
 import net.minecraft.core.*;
@@ -23,7 +25,7 @@ public final class DetailedScanner {
         var hints=new EnumMap<Criterion,Map<BlockPos,List<SeedCandidate.VeinHint>>>(Criterion.class);
         for(var c:Criterion.values()) { evidence.put(c,Evidence.absent(p.requires(c)?"Still needs checking":"Not needed for this search")); targets.put(c,new ArrayList<>()); hints.put(c,new HashMap<>()); }
         int sx=center.getX(),sz=center.getZ();
-        var climate=a.data(sx,sz); double temp=climate.getAverageSeaLevelTemp(sx,sz),rain=climate.getAverageRainfall(sx,sz);
+        var climate=a.data(sx,sz); double temp=climate.getAverageTemp(sx,sz),rain=climate.getRainfall(sx,sz);
         if(p.requires(Criterion.CLIMATE)&&(temp<p.temperatureMin()||temp>p.temperatureMax()+20||rain<p.rainfallMin()||rain>p.rainfallMax())) return null;
         evidence.put(Criterion.CLIMATE,Evidence.inferred(0,sx,sz,"TFC climate %.2f C / %.2f mm; final spawn pending".formatted(temp,rain)));
         var rocks=new HashSet<String>();
@@ -34,7 +36,7 @@ public final class DetailedScanner {
                 int x=sx+dx,z=sz+dz; if(!a.land(x,z)) continue;
                 var data=a.data(x,z); String rock=p.requires(Criterion.FLUX)||p.requires(Criterion.DIVERSITY)?a.rock(x,64,z,64):""; if(p.requires(Criterion.DIVERSITY))rocks.add(rock);
                 if(p.requires(Criterion.FLUX)&&FLUX.contains(rock)&&dist<=p.distance(Criterion.FLUX)) targets.get(Criterion.FLUX).add(new BlockPos(x,64,z));
-                if(p.requires(Criterion.FOREST)&&dist<=p.distance(Criterion.FOREST)&&(data.getForestType().getDensity()>=1||data.getForestType().name().equals("SPARSE"))&&!data.getForestType().isDead())
+                if(p.requires(Criterion.FOREST)&&dist<=p.distance(Criterion.FOREST)&&TfcCompat.density(data.getForestType())>=1)
                     targets.get(Criterion.FOREST).add(new BlockPos(x,0,z));
                 if(p.requires(Criterion.TERRAIN)&&dist<=p.terrainRadius()&&Set.of("plains","lowlands","hills","rolling_hills").contains(a.biome(x,z).key().location().getPath()))
                     targets.get(Criterion.TERRAIN).add(new BlockPos(x,0,z));
@@ -56,16 +58,17 @@ public final class DetailedScanner {
         // TFC's real vein-center algorithm, using the active configured-feature registry and its seed salts.
         // These centers remain INFERRED until real feature-stage blocks are inspected.
         var proxy=(WorldGenLevel)Proxy.newProxyInstance(WorldGenLevel.class.getClassLoader(),new Class<?>[]{WorldGenLevel.class},(o,m,args)->switch(m.getName()) {
-            case "getSeed"->a.seed; case "getMinBuildHeight"->generator.getMinY();
-            case "getHeight"->generator.getGenDepth(); case "getMaxBuildHeight"->generator.getMinY()+generator.getGenDepth();
+            // Development names, then the obfuscated names a real install uses (WorldGenLevel.getSeed, LevelHeightAccessor.getMinBuildHeight/getHeight/getMaxBuildHeight).
+            case "getSeed","m_7328_"->a.seed; case "getMinBuildHeight","m_141937_"->generator.getMinY();
+            case "getHeight","m_141928_"->generator.getGenDepth(); case "getMaxBuildHeight","m_151558_"->generator.getMinY()+generator.getGenDepth();
             default->throw new UnsupportedOperationException("Vein query requested "+m.getName());
         });
         var ctx=new WorldGenerationContext(generator,proxy);
-        for(var entry:registries.registryOrThrow(Registries.CONFIGURED_FEATURE).entrySet()) {
-            var f=entry.getValue(); var id=entry.getKey().location().getPath(); Criterion criterion=classify(id);
-            if(criterion==null||!(p.requires(criterion)||criterion==Criterion.COPPER_VEIN&&p.requires(Criterion.STARTER_COPPER))||!(f.feature() instanceof VeinFeature<?,?>)||!(f.config() instanceof IVeinConfig)) continue;
-            var placed=registries.registryOrThrow(Registries.PLACED_FEATURE).stream().filter(v->v.feature().value()==f).toList();
-            addVeins(f,criterion,proxy,ctx,a,center,p,s,targets,placed,hints);
+        // Only veins this world can generate (listed by a biome its biome source produces), each for the resources its blocks provide.
+        var catalog=VeinCatalog.of(registries,generator.getBiomeSource());
+        for(var vein:catalog.veins()) for(var criterion:vein.resources()) {
+            if(!(p.requires(criterion)||criterion==Criterion.COPPER_VEIN&&p.requires(Criterion.STARTER_COPPER))) continue;
+            addVeins(vein.feature(),criterion,proxy,ctx,a,center,p,s,targets,vein.placed(),hints);
         }
         for(var c:Criterion.values()) {
             var list=targets.get(c); list.sort(Comparator.comparingDouble(b->{
@@ -81,7 +84,7 @@ public final class DetailedScanner {
             var unique=new LinkedHashMap<Long,BlockPos>();
             for(var pos:list) unique.putIfAbsent(new ChunkPos(pos).toLong(),pos);
             list.clear(); unique.values().stream().limit(2048).forEach(list::add);
-            if(!list.isEmpty()) { var pos=list.getFirst(); evidence.put(c,Evidence.inferred(distance(center,pos),pos.getX(),pos.getZ(),"Looks promising; needs a closer look")); }
+            if(!list.isEmpty()) { var pos=list.get(0); evidence.put(c,Evidence.inferred(distance(center,pos),pos.getX(),pos.getZ(),"Looks promising; needs a closer look")); }
         }
         if(p.requires(Criterion.DIVERSITY))evidence.put(Criterion.DIVERSITY,new Evidence(VerificationState.VERIFIED,0,sx,0,sz,Math.min(1,rocks.size()/8.0),rocks.size()+" rock types found in nearby samples"));
         // No false resource rejection on a coarse geology sample. Missing targets get a bounded exact fallback.
@@ -94,11 +97,11 @@ public final class DetailedScanner {
         VeinFeature feature=(VeinFeature)f.feature(); IVeinConfig config=(IVeinConfig)f.config();
         int limit=c==Criterion.COPPER_VEIN&&p.requires(Criterion.STARTER_COPPER)?Math.max(p.requires(c)?p.distance(c):0,p.distance(Criterion.STARTER_COPPER)):p.distance(c);
         int radius=limit+config.chunkRadius()*16;
-        var hosts=new HashSet<String>();for(var block:config.config().states().keySet())hosts.add(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).getPath().replace("rock/raw/",""));
+        var hosts=new HashSet<String>();for(var block:config.config().states().keySet())hosts.add(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(block).getPath().replace("rock/raw/",""));
         var hint=new SeedCandidate.VeinHint(config.config().projectToSurface(),config.verticalRadius(),Set.copyOf(hosts));
         for(int cx=(center.getX()-radius)>>4;cx<=(center.getX()+radius)>>4;cx++) { s.checkpoint();
             for(int cz=(center.getZ()-radius)>>4;cz<=(center.getZ()+radius)>>4;cz++) {
-                var veins=new ArrayList<IVein>(); feature.getVeinsAtChunk(level,ctx,cx,cz,veins,config);
+                var veins=new ArrayList<IVein>(); feature.getVeinsAtChunk(level,ctx,cx,cz,veins,config,(java.util.function.Function<BlockPos,Holder<net.minecraft.world.level.biome.Biome>>)(at->a.biomes.getBiome(QuartPos.fromBlock(at.getX()),QuartPos.fromBlock(at.getZ()))));
                 for(var v:veins) {
                     var pos=v.pos(); if(distance(center,pos)>limit) continue;
                     if(c==Criterion.KAOLIN) {
@@ -110,7 +113,7 @@ public final class DetailedScanner {
                             boolean inBiome=biome.getGenerationSettings().features().stream().flatMap(set->set.stream()).anyMatch(h->h.value()==placedFeature);
                             if(!inBiome) continue;
                             boolean climate=placedFeature.placement().stream().filter(mod->mod instanceof ClimatePlacement).allMatch(mod->
-                                ((ClimatePlacement)mod).isValidNonHemispheral(a.data(pos.getX(),pos.getZ()),new BlockPos(pos.getX(),0,pos.getZ()),
+                                ((ClimatePlacement)mod).isValid(a.data(pos.getX(),pos.getZ()),new BlockPos(pos.getX(),0,pos.getZ()),
                                     new net.minecraft.world.level.levelgen.XoroshiroRandomSource(a.seed^pos.asLong())));
                             if(climate) { suitable=true; break; }
                         }
@@ -123,13 +126,6 @@ public final class DetailedScanner {
                 }
             }
         }
-    }
-    private static Criterion classify(String id) {
-        if(id.contains("native_copper")||id.contains("malachite")||id.contains("tetrahedrite")) return Criterion.COPPER_VEIN;
-        if(id.contains("cassiterite")) return Criterion.TIN;
-        if(id.contains("graphite")) return Criterion.GRAPHITE;
-        if(id.contains("kaolin")) return Criterion.KAOLIN;
-        return null;
     }
     public static double distance(BlockPos a,BlockPos b) { return Math.hypot((double)a.getX()-b.getX(),(double)a.getZ()-b.getZ()); }
 }

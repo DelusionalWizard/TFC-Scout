@@ -6,6 +6,10 @@ TerraFirmaScout searches seeds from the world-creation screen and checks promisi
 
 Scout is available from the **World** tab in Create World.
 
+## Minecraft 1.20.1 (Forge) build
+
+The `forge-1.20.1` branch builds TerraFirmaScout for Minecraft 1.20.1 with Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17, including the TerraFirmaGreg Modern pack. Put `terrafirmascout-1.20.1-0.2.5.jar` in `mods`. Scout reads what the world can actually generate, so it works with addons and packs that change generation. If a pack removes a resource (TerraFirmaGreg removes TFC's loose copper), that requirement is skipped and the search screen says so. Only when TerraFirmaGreg is installed, its presets also look for iron and coal, and searches are slower because the pack's own world generation is heavier.
+
 ## Features
 
 - Five starting presets, from easiest to harshest: Dream Start, Easy Start, Fair Start, Rugged Start and Wilderness Start.
