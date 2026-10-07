@@ -211,7 +211,7 @@ public final class ScoutWorldCreationScreen extends Screen {
             g.enableScissor(left,start,width-8,end);
             int i=0;
             for(var c:Criterion.values()) {
-                var e=best.evidence().get(c); if(e==null||c==Criterion.FRESHWATER||!best.profile().requires(c)&&(c==Criterion.RIVER||c==Criterion.LAKE||c==Criterion.COAST)) continue; int y=start+i++*24-scroll;
+                var e=best.evidence().get(c); if(e==null||c==Criterion.FRESHWATER||!best.profile().requires(c)&&(c==Criterion.RIVER||c==Criterion.LAKE||c==Criterion.COAST||c==Criterion.CROPS||c==Criterion.FARMLAND)) continue; int y=start+i++*24-scroll;
                 if(!best.profile().requires(c)) {
                     drawClipped(g,c.label+(best.profile().skipped().contains(c)?": Skipped, this world does not generate it":": Not needed for this search"),left,y,0x909090);
                     continue;

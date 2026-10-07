@@ -8,7 +8,7 @@ Scout is available from the **World** tab in Create World.
 
 ## Minecraft 1.20.1 (Forge) build and compatibility
 
-This branch builds TerraFirmaScout for **Minecraft 1.20.1, Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17**. Put `terrafirmascout-1.20.1-0.2.6.jar` in `mods`. The 1.21.1 / NeoForge version is on `main`.
+This branch builds TerraFirmaScout for **Minecraft 1.20.1, Forge 47.4 and TerraFirmaCraft 3.2.25 on Java 17**. Put `terrafirmascout-1.20.1-0.2.7.jar` in `mods`. The 1.21.1 / NeoForge version is on `main`.
 
 Scout reads what the world can actually generate, so it works with addons and packs that change generation. If a pack removes a resource, that requirement is skipped and the search screen says so. Features for a particular pack only run when that pack's mod is installed.
 
@@ -58,9 +58,9 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 ## Current status
 
-Version **0.2.6** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
+Version **0.2.7** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
-**What is new in 0.2.6:** the single Freshwater requirement is replaced by separate, optional River, Lake and Coast or ocean checks, each with its own distance (the presets no longer require water). The result screen shows the forest type and tree density at spawn (as a percentage on this build). Saved seeds and wishlists from older versions still load. See [the changelog](CHANGELOG.md).
+**What is new in 0.2.7:** two more optional wishlist checks, Crops (enough of the loaded crops fit the yearly climate at spawn) and, on 1.21.1 only, Farmland moisture (rain alone keeps farmland 30-80% moist). **Earlier in 0.2.6:** the single Freshwater requirement is replaced by separate, optional River, Lake and Coast or ocean checks, each with its own distance (the presets no longer require water). The result screen shows the forest type and tree density at spawn (as a percentage on this build). Saved seeds and wishlists from older versions still load. See [the changelog](CHANGELOG.md).
 
 See [the test report](TEST-REPORT.md) for results and limits, [preset research](RESEARCH-AND-PROFILES.md) for the starting styles, and [API notes](API-NOTES.md) for generation details.
 

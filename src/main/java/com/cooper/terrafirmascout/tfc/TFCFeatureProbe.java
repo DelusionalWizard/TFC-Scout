@@ -54,6 +54,11 @@ public final class TFCFeatureProbe {
             double quality=(CandidateScorer.climate(temperature,profile.temperatureMin(),profile.temperatureIdealMin(),profile.temperatureIdealMax(),profile.temperatureMax())
                 +CandidateScorer.climate(rain,profile.rainfallMin(),profile.rainfallIdealMin(),profile.rainfallIdealMax(),profile.rainfallMax()))/2;
             evidence.put(Criterion.CLIMATE,verified(0,spawn,quality,"Yearly average: %.2f C; rainfall: %.2f mm".formatted(temperature,rain)));
+            if(profile.requires(Criterion.CROPS)) {
+                var fit=CropFit.crops(temperature);
+                evidence.put(Criterion.CROPS,fit.enough()?verified(0,spawn,1,fit.describe()):Evidence.failed(fit.describe()));
+                if(!fit.enough()) return new SeedResult(adapter.seed,spawn.getX(),spawn.getY(),spawn.getZ(),fingerprint,profile,evidence);
+            }
             if(profile.requires(Criterion.CHALLENGE)) {
                 int low=Integer.MAX_VALUE,high=Integer.MIN_VALUE; var cp=new ChunkPos(spawn);
                 for(int dx=-1;dx<=1;dx++) for(int dz=-1;dz<=1;dz++) { session.checkpoint();

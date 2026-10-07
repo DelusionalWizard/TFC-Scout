@@ -24,7 +24,7 @@ final class SpecificationScreen extends Screen {
             try { collect();tab=name;offset=0;rebuildWidgets(); }catch(Exception e){error=e.getMessage();}
         }).bounds(left+i*(tw+2),33,tw,20).build(); b.active=!tab.equals(name);addRenderableWidget(b); }
         if(tab.equals("Resources")) {
-            for(var c:Criterion.values())if(c!=Criterion.SPAWN&&c!=Criterion.SPECIFICATION&&c!=Criterion.DIVERSITY&&c!=Criterion.FRESHWATER)
+            for(var c:Criterion.values())if(c!=Criterion.SPAWN&&c!=Criterion.SPECIFICATION&&c!=Criterion.DIVERSITY&&c!=Criterion.FRESHWATER&&c!=Criterion.FARMLAND)
                 toggle(c.label,draft.required.contains(c),b->{if(!draft.required.remove(c))draft.required.add(c);b.setMessage(check(c.label,draft.required.contains(c)));});
         } else if(tab.equals("Limits")) {
             for(var e:draft.numbers.entrySet()) {

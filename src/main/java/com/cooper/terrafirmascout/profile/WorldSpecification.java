@@ -7,7 +7,7 @@ public record WorldSpecification(boolean enabled,Set<Criterion> requirements,Set
     int densityMin,int densityMax,int elevationMin,int elevationMax,int terrainSize,int campSize,
     int maximumSlope,double grassFraction) {
     public WorldSpecification {
-        requirements=requirements.stream().filter(c->c!=Criterion.FRESHWATER).collect(java.util.stream.Collectors.toUnmodifiableSet()); nearbyBiomes=Set.copyOf(nearbyBiomes); spawnBiomes=Set.copyOf(spawnBiomes);
+        requirements=requirements.stream().filter(c->c!=Criterion.FRESHWATER&&c!=Criterion.FARMLAND).collect(java.util.stream.Collectors.toUnmodifiableSet()); nearbyBiomes=Set.copyOf(nearbyBiomes); spawnBiomes=Set.copyOf(spawnBiomes);
         spawnRocks=Set.copyOf(spawnRocks); forestTypes=Set.copyOf(forestTypes);
         if(biomeRadius<16||biomeRadius>12000||densityMin<0||densityMax>4||densityMin>densityMax
             ||elevationMin>elevationMax||elevationMin< -64||elevationMax>320||terrainSize<4||terrainSize>16

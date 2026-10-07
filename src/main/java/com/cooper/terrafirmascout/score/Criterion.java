@@ -1,7 +1,7 @@
 package com.cooper.terrafirmascout.score;
 public enum Criterion {
     SPAWN("Spawn point",0), MAINLAND("Mainland start",0), LAND_RATIO("Land nearby",0),
-    FRESHWATER("Freshwater (retired)",0), RIVER("River",0), LAKE("Lake",0), COAST("Coast or ocean",0),
+    FRESHWATER("Freshwater (retired)",0), RIVER("River",0), LAKE("Lake",0), COAST("Coast or ocean",0), CROPS("Crops",0), FARMLAND("Farmland moisture",0),
     CLIMATE("Climate",13), TERRAIN("Building spot",10),
     FOREST("Trees",10), CLAY("Clay",9), OPEN_GROUND("Camp spot",0),
     STARTER_COPPER("Loose copper",15), COPPER_VEIN("Copper vein",7), FLUX("Flux",7),
