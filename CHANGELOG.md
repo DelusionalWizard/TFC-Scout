@@ -1,6 +1,6 @@
 # Change history
 
-## 0.2.5 for Minecraft 1.20.1 / Forge (branch forge-1.20.1, 7 October 2026, pushed to GitHub, no release published)
+## 0.2.5 for Minecraft 1.20.1 / Forge (branch forge-1.20.1, 7 October 2026, pushed to GitHub, prerelease v0.2.5-1.20.1)
 - Port of 0.2.5 to Minecraft 1.20.1, Forge 47.4.x, TFC 3.2.25 and Java 17, aimed at the TerraFirmaGreg Modern pack. Same features as the 1.21.1 build.
 - Scout now reads the world's own data: only ore veins the world can generate count, and what a vein provides comes from the blocks it places. Resources a world cannot generate are not required, with a notice. Plain TFC behaves as before.
 - New optional resources: Iron and Coal.
