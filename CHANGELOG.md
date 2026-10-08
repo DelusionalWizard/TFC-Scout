@@ -2,7 +2,7 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.9 remains published (0.2.6, 0.2.7 and 0.2.8 releases were deleted too).
 
-## 1.0.0 for Minecraft 1.20.1 / Forge (8 October 2026, not published)
+## 1.0.0 for Minecraft 1.20.1 / Forge (8 October 2026, published)
 Audit of the whole mod before 1.0.0. Fixes:
 - A seed that makes TFC or another mod throw is now skipped and logged; the search only stops after 25 skipped scans or 5 failed checks in a row. Before, one such seed ended the whole search with an error.
 - Saved seeds are named by a key that is the same in every game session (a hash of the profile's contents). Before, the name used Java's hashCode of the profile, which depends on identity hash codes and can differ between sessions, so a seed saved in an earlier session might not be found again to delete it or keep its note. Files saved by older versions are still found and duplicates are hidden.
