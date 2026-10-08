@@ -1,10 +1,14 @@
 modLoader="javafml"
 loaderVersion="[47,)"
 license="EUPL-1.2"
+issueTrackerURL="https://github.com/DelusionalWizard/TFC-Scout/issues"
 [[mods]]
 modId="terrafirmascout"
 version="${file.jarVersion}"
 displayName="TerraFirmaScout"
+authors="Cooper"
+displayURL="https://github.com/DelusionalWizard/TFC-Scout"
+displayTest="IGNORE_SERVER_VERSION"
 description='''Find a TFC seed that suits your play style, or build a wishlist for your next world.'''
 [[mixins]]
 config="terrafirmascout.mixins.json"

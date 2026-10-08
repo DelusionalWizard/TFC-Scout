@@ -8,6 +8,25 @@ Tests ran in separate development instances on Windows 11, Java 21.0.7, Minecraf
 
 
 
+## 1.0.0 audit (8 October 2026)
+
+Scope: every main source file, both mod metadata files, the documentation and the build files were read; 43 unit tests, real-game smoke suites and release-jar launches were run. Findings and what was done:
+
+| Finding | Severity | Result |
+|---|---|---|
+| One bad seed (TFC or another mod throwing) ended the whole search | Medium | Fixed: the seed is skipped and logged; the search stops only after 25 skipped scans or 5 failed checks in a row |
+| Saved-seed file names used the Java hashCode of the profile, which depends on identity hash codes and may differ between game sessions (not reproduced in my tests, where it was stable, but possible in a real game); the effect would be a seed that cannot be deleted and a note that is lost after a restart | Medium (possible) | Fixed: stable content key, older files still found, duplicates hidden, tests added with fixed expected values |
+| The world fingerprint re-read every mod jar for every search or seed check | Low (slow in big packs) | Fixed: digests cached by path, size and modified time |
+| "Match: 100%" shown next to "Not confirmed yet" | Low (confusing) | Fixed: reads "So far: 100%" until confirmed |
+| A blank Min. match or Range box showed a Java error message | Low | Fixed: "Type a whole number in Min. match and Range." |
+| Mod metadata lacked issue tracker, author and home page; client-only mod did not set displayTest, so a server list could show it as incompatible | Low | Fixed |
+| Not tested: dedicated servers; the 1.21.1 jar launched in a real instance only as 0.2.8 (1.0.0 was run in the development client) | Known limit | Listed in the README |
+
+Results of the 1.0.0 candidate:
+- Unit tests: 43 passed (JDK 17).
+- Real Forge 47.4.18 launches of the harness build, whole smoke suite: plain TFC 3.2.25 + Patchouli passed; the full TerraFirmaGreg Modern 0.13.10 pack (262 mods) passed. River 8/8, lake 8/8, coast 8/8 (7/8 in the pack), crops 8/8 and animals 8/8 real seeds confirmed. In the pack Pause took effect in 0-301 ms and Stop finished in 100-301 ms while a seed was being checked.
+- The release jar (no development classes) was launched without the harness in both setups: the mod loaded, its mixins applied and the title screen was reached.
+
 ## Build and automated checks
 
 

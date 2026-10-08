@@ -43,8 +43,17 @@ public final class WorldgenFingerprint {
             }
         } else { add(d,p.getFileName().toString()); hashFile(d,p); }
     }
+    /** Digests of files already read this session, by path, size and modified time, so a second search in a big modpack does not read every jar again. */
+    private static final java.util.concurrent.ConcurrentHashMap<String,byte[]> FILE_DIGESTS=new java.util.concurrent.ConcurrentHashMap<>();
     private static void hashFile(MessageDigest d,Path p) throws IOException {
-        try(var in=Files.newInputStream(p)) { byte[] b=new byte[65536]; int n; while((n=in.read(b))!=-1) d.update(b,0,n); }
-        d.update((byte)0);
+        var attributes=Files.readAttributes(p,java.nio.file.attribute.BasicFileAttributes.class);
+        String key=p.toAbsolutePath()+"|"+attributes.size()+"|"+attributes.lastModifiedTime().toMillis();
+        byte[] digest=FILE_DIGESTS.get(key);
+        if(digest==null) {
+            MessageDigest inner; try { inner=MessageDigest.getInstance("SHA-256"); } catch(NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
+            try(var in=Files.newInputStream(p)) { byte[] b=new byte[65536]; int n; while((n=in.read(b))!=-1) inner.update(b,0,n); }
+            digest=inner.digest(); FILE_DIGESTS.put(key,digest);
+        }
+        d.update(digest); d.update((byte)0);
     }
 }

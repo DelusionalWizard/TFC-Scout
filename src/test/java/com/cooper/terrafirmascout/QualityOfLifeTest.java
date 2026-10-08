@@ -205,4 +205,23 @@ class QualityOfLifeTest {
             withoutIronAndCoal(preset.distances()),preset.minimumRoughness()).distance(Criterion.IRON));
     }
     private static Map<Criterion,Integer> withoutIronAndCoal(Map<Criterion,Integer> distances) { var copy=new EnumMap<Criterion,Integer>(distances); copy.remove(Criterion.IRON); copy.remove(Criterion.COAL); return copy; }
+
+    // --- saved seeds across game sessions ---
+    @Test void savedSeedsKeepTheirFileNoteAndDeleteAcrossSessions(@TempDir Path dir) throws Exception {
+        ResultHistory.useRoot(dir);
+        try {
+            var saved=ResultHistory.save(result(5,complete()));
+            // A file named the way 0.2.9 and earlier named it (by an unstable hash): it must still be found, noted and deleted after a restart.
+            var oldName=dir.resolve("history").resolve("5-deadbeef-"+FINGERPRINT.substring(0,12)+".json"); Files.move(saved,oldName);
+            var loaded=ResultHistory.load(); assertEquals(1,loaded.size());
+            ResultHistory.setNote(loaded.get(0),"near the coast"); assertEquals("near the coast",ResultHistory.note(loaded.get(0)));
+            ResultHistory.delete(loaded.get(0)); assertFalse(Files.exists(oldName)); assertTrue(ResultHistory.load().isEmpty());
+        } finally { ResultHistory.useRoot(null); }
+    }
+    @Test void profileKeyIsTheSameInEveryGameSession() {
+        // Fixed expected values: a key built from identity hash codes (as before) would differ from run to run and fail here on some builds.
+        assertEquals("daa6e064aa",ResultHistory.profileKey(ScoutProfile.beginner()));
+        assertEquals("9480352df7",ResultHistory.profileKey(ScoutProfile.preset(SeedQuality.AVERAGE)));
+        assertNotEquals(ResultHistory.profileKey(ScoutProfile.beginner()),ResultHistory.profileKey(ScoutProfile.preset(SeedQuality.AVERAGE)));
+    }
 }

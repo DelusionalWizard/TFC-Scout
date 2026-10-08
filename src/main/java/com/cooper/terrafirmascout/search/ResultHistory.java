@@ -10,7 +10,23 @@ public final class ResultHistory {
     /** Tests and development harnesses point history somewhere else; the game uses its own folder. */
     public static void useRoot(Path path){rootOverride=path;}
     public static Path root(){return rootOverride!=null?rootOverride:FMLPaths.GAMEDIR.get().resolve("terrafirmascout");}
-    public static Path fileFor(SeedResult result){return root().resolve("history").resolve(result.seed()+"-"+Integer.toHexString(result.profile().hashCode())+"-"+result.fingerprint().substring(0,12)+".json");}
+    /** Where each result was read from or saved to this session, so older files (named by an unstable hash in 0.2.9 and earlier) are still found. */
+    private static final Map<SeedResult,Path> KNOWN=Collections.synchronizedMap(new WeakHashMap<>());
+    public static Path fileFor(SeedResult result){var known=KNOWN.get(result);return known!=null?known:root().resolve("history").resolve(result.seed()+"-"+profileKey(result.profile())+"-"+result.fingerprint().substring(0,12)+".json");}
+    /**
+     * A short key for a profile that is the same in every game session. Java's own hashCode of a profile is not: it includes enum hash codes, which change
+     * every run, so seeds saved in an earlier session could no longer be deleted or keep their note.
+     */
+    public static String profileKey(com.cooper.terrafirmascout.profile.ScoutProfile profile){
+        var text=new StringBuilder();canonical(JSON.toJsonTree(profile),text);
+        try{return HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(text.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8))).substring(0,10);}
+        catch(java.security.NoSuchAlgorithmException e){throw new IllegalStateException(e);}
+    }
+    private static void canonical(JsonElement e,StringBuilder out){
+        if(e.isJsonObject()){var object=e.getAsJsonObject();out.append('{');for(var key:new TreeSet<>(object.keySet())){out.append(key).append(':');canonical(object.get(key),out);out.append(',');}out.append('}');}
+        else if(e.isJsonArray()){var items=new ArrayList<String>();for(var item:e.getAsJsonArray()){var one=new StringBuilder();canonical(item,one);items.add(one.toString());}Collections.sort(items);out.append('[');items.forEach(i->out.append(i).append(','));out.append(']');}
+        else out.append(e);
+    }
     private static Path notesFile(){return root().resolve("history-notes.json");}
     private static JsonObject readNotes(){try{var f=notesFile();if(Files.isRegularFile(f))return JsonParser.parseString(Files.readString(f)).getAsJsonObject();}catch(Exception ignored){}return new JsonObject();}
     /** A short player note for a saved seed, or an empty string. Notes live beside the saved results, not inside them. */
@@ -33,6 +49,7 @@ public final class ResultHistory {
         var path=fileFor(result);
         var temporary=Files.createTempFile(dir,"result-",".tmp");
         try{Files.writeString(temporary,JSON.toJson(result));Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING);}finally{Files.deleteIfExists(temporary);}
+        KNOWN.put(result,path);
         return path;
     }
     public static List<SeedResult> load() {
@@ -40,7 +57,8 @@ public final class ResultHistory {
         if(!Files.isDirectory(dir))return results;
         try(var paths=Files.list(dir)){
             var files=paths.filter(p->p.getFileName().toString().endsWith(".json")).sorted((a,b)->{try{return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));}catch(Exception e){return 0;}}).limit(100).toList();
-            for(var p:files)try{var result=JSON.fromJson(Files.readString(p),SeedResult.class);if(result.selectable(result.fingerprint()))results.add(result);}catch(Exception ignored){}
+            var seen=new HashSet<String>();
+            for(var p:files)try{var result=JSON.fromJson(Files.readString(p),SeedResult.class);if(result.selectable(result.fingerprint())&&seen.add(result.seed()+"/"+profileKey(result.profile())+"/"+result.fingerprint())){KNOWN.put(result,p);results.add(result);}}catch(Exception ignored){}
         }catch(Exception e){com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.warn("Unable to read seed history",e);}
         return List.copyOf(results);
     }

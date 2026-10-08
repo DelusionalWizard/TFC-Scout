@@ -107,7 +107,7 @@ public final class ScoutWorldCreationScreen extends Screen {
             savePrefs(); savedResult=null; announcedMatches=0;
             engine=new ScoutSearchEngine(capture(),selectedProfile(),limits()); engine.start(); message="";
             com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: search started ({}, speed {}, stop after {} matches / {} min)",profileName(),prefs.speed,prefs.stopAfterMatches,prefs.stopAfterMinutes);
-        } catch(Exception e) { message="Could not start: "+e.getMessage(); }
+        } catch(NumberFormatException e) { message="Type a whole number in Min. match and Range."; } catch(Exception e) { message="Could not start: "+e.getMessage(); }
     }
     /** A closer look re-checks one close call with a larger inspection budget; the same real-world checks decide the result. */
     private void startCloserLook(SeedResult result) {
@@ -207,7 +207,7 @@ public final class ScoutWorldCreationScreen extends Screen {
         var best=bestResult();
         int start=138,end=height-62;
         if(best!=null) {
-            drawClipped(g,"Seed: "+best.seed()+"   Match: "+best.score()+"%   "+best.status(),left,124,best.selectable(best.fingerprint())?0x77ff88:0xffcc66);
+            drawClipped(g,"Seed: "+best.seed()+(best.selectable(best.fingerprint())?"   Match: ":"   So far: ")+best.score()+"%   "+best.status(),left,124,best.selectable(best.fingerprint())?0x77ff88:0xffcc66);
             g.enableScissor(left,start,width-8,end);
             int i=0;
             for(var c:Criterion.values()) {

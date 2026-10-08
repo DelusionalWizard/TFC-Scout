@@ -2,6 +2,17 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.9 remains published (0.2.6, 0.2.7 and 0.2.8 releases were deleted too).
 
+## 1.0.0 for Minecraft 1.20.1 / Forge (8 October 2026, not published)
+Audit of the whole mod before 1.0.0. Fixes:
+- A seed that makes TFC or another mod throw is now skipped and logged; the search only stops after 25 skipped scans or 5 failed checks in a row. Before, one such seed ended the whole search with an error.
+- Saved seeds are named by a key that is the same in every game session (a hash of the profile's contents). Before, the name used Java's hashCode of the profile, which depends on identity hash codes and can differ between sessions, so a seed saved in an earlier session might not be found again to delete it or keep its note. Files saved by older versions are still found and duplicates are hidden.
+- The world fingerprint remembers the digest of every file it has read (by path, size and modified time), so a second search or seed check in a big modpack no longer re-reads every mod jar.
+- The line under a search that has no confirmed seed yet now reads "So far: 100%" instead of "Match: 100%", because a seed can have every weighted check passed and still have a required check open.
+- A blank Min. match or Range box now says "Type a whole number" instead of a Java error message.
+- mods.toml sets displayTest=IGNORE_SERVER_VERSION so a client with Scout is not shown as incompatible with servers that do not have it. Mod metadata now has the issue tracker, author and home page.
+- New tests: saved seeds keep their file, note and delete after a restart (including a file named the old way); the profile key is checked against fixed values so it cannot silently become session-dependent.
+- Tests: 43 unit tests.
+
 ## 0.2.9 for Minecraft 1.20.1 / Forge (8 October 2026, published as prerelease)
 - New optional wishlist check **Animals that can spawn**: the biomes within a chosen distance of spawn must list at least 3 farm animals (TFC's tfc:livestock tag) and 2 wild prey species (tfc:land_prey). It uses the biome spawn lists in the world's data (addon animals count). If the world lists no farm or wild animals at all, the check is treated as not needed. It says "can spawn"; it does not promise an animal will be there. Default distances per preset are stored with the other distances (300 / 500 / 800 / 1500 / 2500 blocks) but the presets do not require it.
 - Why it is a spawn-list check and not a check of real animals: a development experiment generated the spawn stage for 5 x 5 chunks around spawn on four seeds in a scratch world; it took about 2 seconds per seed and found animals on only one seed (3 rabbits), because TFC animals mostly spawn after chunks load, not during world generation.
