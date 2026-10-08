@@ -1,6 +1,6 @@
 # Change history
 
-> Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.9 remains published (0.2.6, 0.2.7 and 0.2.8 releases were deleted too).
+> Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 1.0.0 remains published (0.2.6 to 0.2.9 releases were deleted too).
 
 ## 1.0.0 for Minecraft 1.20.1 / Forge (8 October 2026, published)
 Audit of the whole mod before 1.0.0. Fixes:
