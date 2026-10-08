@@ -26,14 +26,14 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
             ||(specification.requirements().contains(Criterion.OPEN_GROUND)&&campRadius>radius)
             ||((specification.requirements().contains(Criterion.LAND_RATIO)||specification.requirements().contains(Criterion.MAINLAND))&&landRadius>radius)))
             throw new IllegalArgumentException("Your building, camp or land check is larger than the search area.");
-        for(var c:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,
+        for(var c:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.ANIMALS,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,
             Criterion.COPPER_VEIN,Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN))
             if(!distances.containsKey(c)||distances.get(c)<1||(!specification.enabled()||specification.requirements().contains(c))&&distances.get(c)>radius) throw new IllegalArgumentException("Check the distance for "+c);
     }
     /** Saved profiles from before the river, lake and coast checks have no distance for them. */
     private static Map<Criterion,Integer> withDefaults(Map<Criterion,Integer> given,int radius) {
         var all=new EnumMap<Criterion,Integer>(Criterion.class); all.putAll(given);
-        for(var c:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST)) all.putIfAbsent(c,Math.min(radius,600));
+        for(var c:List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.ANIMALS)) all.putIfAbsent(c,Math.min(radius,600));
         return all;
     }
     public int distance(Criterion c) { return distances.getOrDefault(c,radius); }
@@ -63,14 +63,14 @@ public record ScoutProfile(String name,int minScore,int radius,double temperatur
     public static ScoutProfile balanced() { return preset(SeedQuality.GOOD); }
     public static ScoutProfile preset(SeedQuality quality) {
         var d=new EnumMap<Criterion,Integer>(Criterion.class);
-        var keys=List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,
+        var keys=List.of(Criterion.RIVER,Criterion.LAKE,Criterion.COAST,Criterion.ANIMALS,Criterion.FOREST,Criterion.CLAY,Criterion.STARTER_COPPER,Criterion.COPPER_VEIN,
             Criterion.FLUX,Criterion.TIN,Criterion.GRAPHITE,Criterion.KAOLIN);
         int[] values=switch(quality) {
-            case GOD->new int[]{160,400,1000,350,300,750,1000,1200,2000,4000,4000};
-            case GOOD->new int[]{250,600,1500,500,500,1000,1500,2000,3000,5000,6000};
-            case AVERAGE->new int[]{400,1000,2500,800,800,1500,2500,3500,4500,7000,9000};
-            case HARD->new int[]{800,2000,4000,1500,2000,3000,3500,6000,7000,10000,12000};
-            case SUPER_HARD->new int[]{1500,3000,6000,2500,3500,5000,6000,8000,10000,12000,12000};
+            case GOD->new int[]{160,400,1000,300,350,300,750,1000,1200,2000,4000,4000};
+            case GOOD->new int[]{250,600,1500,500,500,500,1000,1500,2000,3000,5000,6000};
+            case AVERAGE->new int[]{400,1000,2500,800,800,800,1500,2500,3500,4500,7000,9000};
+            case HARD->new int[]{800,2000,4000,1500,1500,2000,3000,3500,6000,7000,10000,12000};
+            case SUPER_HARD->new int[]{1500,3000,6000,2500,2500,3500,5000,6000,8000,10000,12000,12000};
         };
         for(int i=0;i<keys.size();i++) d.put(keys.get(i),values[i]);
         return switch(quality) {

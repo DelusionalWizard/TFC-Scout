@@ -150,6 +150,8 @@ public final class ScoutSearchEngine implements AutoCloseable {
             session.pass1.incrementAndGet();
             var candidate=DetailedScanner.scan(a,spawn,profile,session,context.creation().worldgenLoadContext(),context.copyGenerator());
             if(candidate==null) return null;
+            var animals=candidate.evidence().get(com.cooper.terrafirmascout.score.Criterion.ANIMALS);
+            if(animals!=null&&animals.state()==com.cooper.terrafirmascout.score.VerificationState.FAILED) return null;
             // Require real deterministic centers or region candidates for all costly resources before scheduling chunks.
             for(var c:List.of(com.cooper.terrafirmascout.score.Criterion.RIVER,com.cooper.terrafirmascout.score.Criterion.LAKE,com.cooper.terrafirmascout.score.Criterion.COAST,com.cooper.terrafirmascout.score.Criterion.FOREST,
                 com.cooper.terrafirmascout.score.Criterion.COPPER_VEIN,com.cooper.terrafirmascout.score.Criterion.TIN,

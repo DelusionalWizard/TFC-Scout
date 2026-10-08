@@ -58,7 +58,7 @@ final class SpecificationScreen extends Screen {
         case "spawn_elevation_min"->"Lowest spawn height (Y)";case "spawn_elevation_max"->"Highest spawn height (Y)";
         case "terrain_patch_size"->"Building site width (blocks)";case "camp_patch_size"->"Camp width (blocks)";
         case "maximum_slope"->"Allowed height difference";case "minimum_grass_fraction"->"Grass needed (0-1)";
-        default->"Max distance to "+key.replace("_distance","").replace('_',' ').replace("starter copper","loose copper").replace("coast","coast or ocean");
+        default->"Max distance to "+key.replace("_distance","").replace('_',' ').replace("starter copper","loose copper").replace("coast","coast or ocean").replace("animals","animals that can spawn");
     };}
     private static Component check(String label,boolean on) {return Component.literal((on?"[x] ":"[ ] ")+label);}
     private void choice(String id,Set<String> selection) {String raw=id.contains(":")?id.substring(id.indexOf(':')+1):id;String label=raw.replace('_',' ');label=Character.toUpperCase(label.charAt(0))+label.substring(1);if(id.contains(":"))label+=" ("+(id.startsWith("tfc:")?"TFC":id.startsWith("minecraft:")?"Minecraft":id.substring(0,id.indexOf(':')))+")"; final String shown=label;toggle(shown,selection.contains(id),b->{if(!selection.remove(id))selection.add(id);b.setMessage(check(shown,selection.contains(id)));});}

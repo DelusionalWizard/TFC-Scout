@@ -1,6 +1,6 @@
 plugins { id 'java'; id 'net.neoforged.moddev' version '2.0.107' }
 group = 'com.cooper.terrafirmascout'
-version = '0.2.8'
+version = '0.2.9'
 base { archivesName = 'terrafirmascout-1.21.1' }
 java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
 neoForge {
@@ -29,4 +29,9 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 test { useJUnitPlatform() }
-jar { exclude 'com/cooper/terrafirmascout/client/DevelopmentSmokeTest*'; exclude 'com/cooper/terrafirmascout/client/DevelopmentMemoryTest*'; from('LICENSE.txt'); from('THIRD-PARTY-NOTICES.md') }
+jar {
+    // -PwithHarness=true builds a separate test jar that keeps the development harness. Release jars never contain it.
+    if(providers.gradleProperty('withHarness').isPresent()) archiveClassifier = 'harness'
+    else { exclude 'com/cooper/terrafirmascout/client/DevelopmentSmokeTest*'; exclude 'com/cooper/terrafirmascout/client/DevelopmentMemoryTest*' }
+    from('LICENSE.txt'); from('THIRD-PARTY-NOTICES.md')
+}

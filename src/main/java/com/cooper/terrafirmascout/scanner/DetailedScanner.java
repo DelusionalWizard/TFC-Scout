@@ -43,18 +43,23 @@ public final class DetailedScanner {
             }
         }
         // Refine small-radius resources; climate/biome conditions are candidates, never guarantees.
-        int nearby=Math.max(p.requires(Criterion.CLAY)?p.distance(Criterion.CLAY):0,Math.max(p.requires(Criterion.RIVER)?p.distance(Criterion.RIVER):0,Math.max(p.requires(Criterion.LAKE)?p.distance(Criterion.LAKE):0,p.requires(Criterion.COAST)?p.distance(Criterion.COAST):0))); int step=nearby>800?64:16;
+        int nearby=Math.max(p.requires(Criterion.CLAY)?p.distance(Criterion.CLAY):0,Math.max(p.requires(Criterion.RIVER)?p.distance(Criterion.RIVER):0,Math.max(p.requires(Criterion.LAKE)?p.distance(Criterion.LAKE):0,p.requires(Criterion.COAST)?p.distance(Criterion.COAST):0))); if(p.requires(Criterion.ANIMALS)) nearby=Math.max(nearby,p.distance(Criterion.ANIMALS)); int step=nearby>800?64:16; var animalBiomes=new HashSet<net.minecraft.resources.ResourceLocation>();
         for(int dx=-nearby;dx<=nearby;dx+=step) { s.checkpoint();
             for(int dz=-nearby;dz<=nearby;dz+=step) {
                 double d=Math.hypot(dx,dz); int x=sx+dx,z=sz+dz;
                 var b=a.biome(x,z);
                 String waterPath=b.key().location().getPath();
+                if(p.requires(Criterion.ANIMALS)&&d<=p.distance(Criterion.ANIMALS)) animalBiomes.add(b.key().location());
                 if(p.requires(Criterion.RIVER)&&d<=p.distance(Criterion.RIVER)&&!b.isSalty()&&waterPath.contains("river")) targets.get(Criterion.RIVER).add(new BlockPos(x,0,z));
                 if(p.requires(Criterion.LAKE)&&d<=p.distance(Criterion.LAKE)&&!b.isSalty()&&waterPath.contains("lake")) targets.get(Criterion.LAKE).add(new BlockPos(x,0,z));
                 if(p.requires(Criterion.COAST)&&d<=p.distance(Criterion.COAST)&&(b.isSalty()||b.isShore())) targets.get(Criterion.COAST).add(new BlockPos(x,0,z));
                 if(p.requires(Criterion.CLAY)&&d<=p.distance(Criterion.CLAY)&&a.land(x,z))
                     targets.get(Criterion.CLAY).add(new BlockPos(x,0,z));
             }
+        }
+        if(p.requires(Criterion.ANIMALS)) {
+            var fit=com.cooper.terrafirmascout.tfc.AnimalCatalog.of(generator.getBiomeSource()).fit(animalBiomes); String text=fit.describe(p.distance(Criterion.ANIMALS));
+            evidence.put(Criterion.ANIMALS,fit.ok()?new Evidence(com.cooper.terrafirmascout.score.VerificationState.VERIFIED,0,sx,0,sz,1,text):Evidence.failed(text));
         }
         if(p.requires(Criterion.OPEN_GROUND))targets.get(Criterion.OPEN_GROUND).add(center);
         // TFC's real vein-center algorithm, using the active configured-feature registry and its seed salts.
