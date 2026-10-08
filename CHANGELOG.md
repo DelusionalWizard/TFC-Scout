@@ -2,6 +2,12 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.8 remains published (0.2.6 and 0.2.7 releases were deleted too).
 
+## 0.2.9 for Minecraft 1.20.1 / Forge (8 October 2026, not published)
+- New optional wishlist check **Animals that can spawn**: the biomes within a chosen distance of spawn must list at least 3 farm animals (TFC's tfc:livestock tag) and 2 wild prey species (tfc:land_prey). It uses the biome spawn lists in the world's data (addon animals count). If the world lists no farm or wild animals at all, the check is treated as not needed. It says "can spawn"; it does not promise an animal will be there. Default distances per preset are stored with the other distances (300 / 500 / 800 / 1500 / 2500 blocks) but the presets do not require it.
+- Why it is a spawn-list check and not a check of real animals: a development experiment generated the spawn stage for 5 x 5 chunks around spawn on four seeds in a scratch world; it took about 2 seconds per seed and found animals on only one seed (3 rabbits), because TFC animals mostly spawn after chunks load, not during world generation.
+- The 1.21.1 build can now also build a harness jar (`-PwithHarness=true`) like the 1.20.1 build; release jars still never contain the development classes.
+- Tests: 41 unit tests; real Forge launches of the harness build in plain TFC and the full TerraFirmaGreg pack passed (Animals confirmed on 8 of 8 seeds in each).
+
 ## 0.2.8 for Minecraft 1.20.1 / Forge (8 October 2026, published as prerelease)
 - Faster seed checks and a quicker Pause in big modpacks: every seed check used to reopen all installed mods and data packs, which took 3-8 seconds in the TerraFirmaGreg pack. Scout now opens them once per search and shares them (closed 20 seconds after the last check). A scratch world also takes TerraFirmaGreg's global seed later and gives it back sooner, so the search threads wait less. Measured in the full TerraFirmaGreg pack: preparing a seed check went from 3-8 s to 5-20 ms after the first, and Pause took effect in 0-100 ms (was 1.9-4 s). Seeds checked in a fixed 20 s were roughly the same, because chunk generation dominates.
 - Groundwork for animal checks: an animal catalog lists the land animals each biome of the selected world can spawn. It is not a wishlist option yet.

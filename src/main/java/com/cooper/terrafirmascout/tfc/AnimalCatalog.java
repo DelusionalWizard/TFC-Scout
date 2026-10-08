@@ -3,6 +3,9 @@ import java.util.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.biome.BiomeSource;
 /**
  * Groundwork for animal checks: which land animals the selected world's biomes list as spawns, read from the biome data rather than from names, so addon
@@ -36,6 +39,33 @@ public final class AnimalCatalog {
     /** How many different animals the given biomes list between them. */
     public int speciesIn(Collection<ResourceLocation> biomes) {
         var found=new HashSet<ResourceLocation>(); for(var biome:biomes) found.addAll(inBiome(biome).keySet()); return found.size();
+    }
+    private static final int FARM_NEEDED=3,PREY_NEEDED=2;
+    private volatile Set<ResourceLocation> farmIds,preyIds;
+    /** What the biomes in an area list: farm animals (livestock you can keep) and wild prey (what you can hunt), by TFC's own entity tags. */
+    public record Fit(int farm,int prey,boolean farmListed,boolean preyListed,List<String> farmNames) {
+        public boolean ok() { return (!farmListed||farm>=FARM_NEEDED)&&(!preyListed||prey>=PREY_NEEDED); }
+        public String describe(int distance) {
+            if(!farmListed&&!preyListed) return "This world lists no farm or wild animals in its biomes, so this was not required";
+            String names=farmNames.isEmpty()?"":" ("+String.join(", ",farmNames.subList(0,Math.min(5,farmNames.size())))+(farmNames.size()>5?", ...":"")+")";
+            return "Within "+distance+" blocks the biomes list "+farm+" farm animals"+names+" and "+prey+" wild prey species that can spawn (wanted: "+(farmListed?FARM_NEEDED:0)+" and "+(preyListed?PREY_NEEDED:0)+"). Spawning is not guaranteed.";
+        }
+    }
+    private Set<ResourceLocation> ids(TagKey<EntityType<?>> tag) {
+        var found=new HashSet<ResourceLocation>();
+        BuiltInRegistries.ENTITY_TYPE.getTag(tag).ifPresent(set->set.forEach(holder->holder.unwrapKey().ifPresent(k->found.add(k.location()))));
+        return found;
+    }
+    /** How many farm animals and wild prey species the given biomes list between them. */
+    public Fit fit(Collection<ResourceLocation> biomes) {
+        if(farmIds==null) {
+            farmIds=ids(TagKey.create(Registries.ENTITY_TYPE,new ResourceLocation("tfc","livestock"))); preyIds=ids(TagKey.create(Registries.ENTITY_TYPE,new ResourceLocation("tfc","land_prey")));
+        }
+        var here=new TreeSet<ResourceLocation>(); for(var biome:biomes) here.addAll(inBiome(biome).keySet());
+        var farm=new ArrayList<String>(); int prey=0;
+        for(var id:here) { if(farmIds.contains(id)) farm.add(id.getPath()); if(preyIds.contains(id)) prey++; }
+        boolean farmListed=species.stream().anyMatch(farmIds::contains),preyListed=species.stream().anyMatch(preyIds::contains);
+        return new Fit(farm.size(),prey,farmListed,preyListed,farm);
     }
     /** Number of biomes that list at least one animal. */
     public int biomeCount() { return byBiome.size(); }

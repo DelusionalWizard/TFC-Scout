@@ -154,13 +154,13 @@ public final class DevelopmentSmokeTest {
                     var plains=new net.minecraft.resources.ResourceLocation("tfc","plains");
                     benchmark+="Animal catalog: "+animals.species().size()+" animals listed across "+animals.biomeCount()+" biomes; plains lists "+animals.inBiome(plains).keySet()+"\n";
                 }
-                for(var water:java.util.List.of(com.cooper.terrafirmascout.score.Criterion.RIVER,com.cooper.terrafirmascout.score.Criterion.LAKE,com.cooper.terrafirmascout.score.Criterion.COAST,com.cooper.terrafirmascout.score.Criterion.CROPS)) {
+                for(var water:java.util.List.of(com.cooper.terrafirmascout.score.Criterion.RIVER,com.cooper.terrafirmascout.score.Criterion.LAKE,com.cooper.terrafirmascout.score.Criterion.COAST,com.cooper.terrafirmascout.score.Criterion.CROPS,com.cooper.terrafirmascout.score.Criterion.ANIMALS)) {
                     int ok=0,tried=0;
                     for(long ws=seed;ws<seed+8;ws++) {
                         var wa=new com.cooper.terrafirmascout.tfc.TFCWorldgenAdapter(ws,c.settings(),c.biomes());
                         try {
                             var wd=SpecificationDraft.fromPreset(ScoutProfile.beginner());wd.required.clear();wd.required.add(water);
-                            if(water.ordinal()<=com.cooper.terrafirmascout.score.Criterion.COAST.ordinal())wd.numbers.put(water.name().toLowerCase()+"_distance",3000d);wd.numbers.put("min_score",0d);
+                            if(water.ordinal()<=com.cooper.terrafirmascout.score.Criterion.COAST.ordinal()||water==com.cooper.terrafirmascout.score.Criterion.ANIMALS)wd.numbers.put(water.name().toLowerCase()+"_distance",3000d);wd.numbers.put("min_score",0d);
                             wd.numbers.put("temperature_min",-20d);wd.numbers.put("temperature_ideal_min",-20d);wd.numbers.put("temperature_ideal_max",40d);wd.numbers.put("temperature_max",40d);
                             wd.numbers.put("rainfall_min",0d);wd.numbers.put("rainfall_ideal_min",0d);wd.numbers.put("rainfall_ideal_max",500d);wd.numbers.put("rainfall_max",500d);
                             var wp=wd.build();var wcand=DetailedScanner.scan(wa,wa.spawnBiome(),wp,new SearchSession(),c.creation().worldgenLoadContext(),c.copyGenerator());
