@@ -28,7 +28,8 @@ Individual addons were tested only as part of that pack, not one at a time. Othe
 - Scout follows TerraFirmaGreg's changed world generation. Searches are slower there, because the pack's generation is heavier and Scout has to check seeds one at a time.
 - TerraFirmaGreg removes TFC's default ore veins and adds its own that place GregTech ores. Scout confirms copper, tin, graphite, iron and coal by those ores. TFC's ore melting is removed too, so the loose copper requirement is skipped in that pack.
 - Only with TerraFirmaGreg installed, the Dream, Easy and Fair presets also require iron and coal. Iron and coal are optional resources in the wishlist everywhere.
-- Pause can take a few seconds in that pack while a seed is being checked.
+- Pause now takes effect in well under a second in that pack (0.2.8 and later; earlier versions could take a few seconds).
+- While Scout checks seeds in that pack, the game log (`latest.log`) will show extra lines from GregTech such as "Tried to set output item stack that doesn't exist", about 8 per seed checked. GregTech already logs the same kind of lines at every normal start of the pack. They come from the pack's own data, are not crashes, and do not affect Scout's results.
 
 ## Features
 
