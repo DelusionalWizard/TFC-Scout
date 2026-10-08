@@ -2,7 +2,7 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.7 remains published (0.2.6 releases were deleted too).
 
-## 0.2.8 (8 October 2026, not published)
+## 0.2.8 (8 October 2026, published as prerelease)
 - Groundwork for animal checks: an animal catalog lists the land animals each biome of the selected world can spawn (read from the biome data, so addon animals count). It is not a wishlist option yet, because a biome list only says an animal can spawn, not that one will be near a spot.
 
 ## 0.2.7 (8 October 2026, published as prerelease)
