@@ -158,4 +158,23 @@ class QualityOfLifeTest {
             assertTrue(loaded.getFirst().selectable(FINGERPRINT));
         } finally { ResultHistory.useRoot(null); }
     }
+
+    // --- saved seeds across game sessions ---
+    @Test void savedSeedsKeepTheirFileNoteAndDeleteAcrossSessions(@TempDir Path dir) throws Exception {
+        ResultHistory.useRoot(dir);
+        try {
+            var saved=ResultHistory.save(result(5,complete()));
+            // A file named the way 0.2.9 and earlier named it (by an unstable hash): it must still be found, noted and deleted after a restart.
+            var oldName=dir.resolve("history").resolve("5-deadbeef-"+FINGERPRINT.substring(0,12)+".json"); Files.move(saved,oldName);
+            var loaded=ResultHistory.load(); assertEquals(1,loaded.size());
+            ResultHistory.setNote(loaded.getFirst(),"near the coast"); assertEquals("near the coast",ResultHistory.note(loaded.getFirst()));
+            ResultHistory.delete(loaded.getFirst()); assertFalse(Files.exists(oldName)); assertTrue(ResultHistory.load().isEmpty());
+        } finally { ResultHistory.useRoot(null); }
+    }
+    @Test void profileKeyIsTheSameInEveryGameSession() {
+        // Fixed expected values: a key built from identity hash codes (as before) would differ from run to run and fail here on some builds.
+        assertEquals("52c88ffcab",ResultHistory.profileKey(ScoutProfile.beginner()));
+        assertEquals("39cec49079",ResultHistory.profileKey(ScoutProfile.preset(SeedQuality.AVERAGE)));
+        assertNotEquals(ResultHistory.profileKey(ScoutProfile.beginner()),ResultHistory.profileKey(ScoutProfile.preset(SeedQuality.AVERAGE)));
+    }
 }

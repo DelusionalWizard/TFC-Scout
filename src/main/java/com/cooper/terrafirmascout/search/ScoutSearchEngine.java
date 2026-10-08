@@ -20,6 +20,9 @@ public final class ScoutSearchEngine implements AutoCloseable {
     // Shortlisted seeds waiting for a real-world check. Bounded, so a slow verifier holds back scanning instead of piling up generators.
     private final Object pendingLock=new Object(); private final List<SeedCandidate> pending=new ArrayList<>(); private boolean scanningDone;
     private volatile boolean verifying; private volatile Throwable verifierFailure;
+    /** A seed that makes TFC or another mod throw is skipped and logged. Only a run of failures (a real fault, not one odd seed) ends the search. */
+    private static final int MAX_SKIPPED_SCANS=25,MAX_FAILED_CHECKS_IN_A_ROW=5;
+    private final AtomicInteger skippedScans=new AtomicInteger(); private int failedChecks;
     public ScoutSearchEngine(SearchWorldContext context,ScoutProfile profile) { this(context,profile,SearchLimits.DEFAULT); }
     public ScoutSearchEngine(SearchWorldContext context,ScoutProfile profile,SearchLimits limits) {
         this.limits=limits; this.workerCount=limits.workers()>0?limits.workers():ScoutConfig.WORKERS.get();
@@ -118,8 +121,16 @@ public final class ScoutSearchEngine implements AutoCloseable {
         verifying=true;
         try {
             session.checkpoint(); SeedResult result;
-            try { result=new TFCFeatureProbe(context,profile,session,targetChunks).verify(candidate,fingerprint); }
-            finally { candidate.adapter().releaseThreadCaches(); }
+            try {
+                try { result=new TFCFeatureProbe(context,profile,session,targetChunks).verify(candidate,fingerprint); }
+                finally { candidate.adapter().releaseThreadCaches(); }
+            } catch(CancellationException|InterruptedException e) { throw e;
+            } catch(Exception e) {
+                if(session.cancelled||++failedChecks>=MAX_FAILED_CHECKS_IN_A_ROW) throw e;
+                com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.warn("Scout: skipped seed {} because checking it failed ({} in a row)",candidate.adapter().seed,failedChecks,e);
+                return;
+            }
+            failedChecks=0;
             session.offer(result);
             if(result.selectable(fingerprint)) {
                 ResultHistory.save(result); session.addMatch(result); long found=session.verified.incrementAndGet();
@@ -160,6 +171,11 @@ public final class ScoutSearchEngine implements AutoCloseable {
             session.pass2.incrementAndGet(); return candidate;
         } catch(ScanLimit.Abandoned e) {
             if(!session.cancelled) session.skippedSlow.incrementAndGet();
+            return null;
+        } catch(CancellationException e) { throw e;
+        } catch(RuntimeException e) {
+            if(session.cancelled||skippedScans.incrementAndGet()>MAX_SKIPPED_SCANS) throw e;
+            com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.warn("Scout: skipped seed {} because scanning it failed",seed,e);
             return null;
         } finally { ScanLimit.end(); a.releaseThreadCaches(); }
     }
