@@ -9,7 +9,7 @@ Scout is available from the **World** tab in Create World.
 ## Features
 
 - Five starting presets, from easiest to harshest: Dream Start, Easy Start, Fair Start, Rugged Start and Wilderness Start.
-- Custom requirements for resources (including river, lake, coast or ocean and crop suitability), travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
+- Custom requirements for resources (including river, lake, coast or ocean, crop suitability and animals that can spawn), travel distances, climate, spawn and nearby biomes, surface rocks, forests, spawn height and building spots.
 - Pause, resume and stop controls, with Pausing and Stopping shown while a check in progress finishes.
 - A Results screen with every confirmed match from the search, plus close calls (seeds that missed exactly one check) you can give a closer look.
 - Check any seed (a number or text) against your choices, and copy a seed or a plain-text report to share.
@@ -24,7 +24,7 @@ Minecraft **1.21.1**, NeoForge **21.1.234 or newer**, TerraFirmaCraft **4.2.11**
 
 ## Download
 
-Download jars from the [GitHub Releases page](https://github.com/DelusionalWizard/TFC-Scout/releases): `v0.2.8` for Minecraft 1.21.1 (NeoForge) and `v0.2.8-1.20.1` for Minecraft 1.20.1 (Forge). Release files are not kept in the repository, and older releases have been removed.
+Download jars from the [GitHub Releases page](https://github.com/DelusionalWizard/TFC-Scout/releases): `v0.2.9` for Minecraft 1.21.1 (NeoForge) and `v0.2.9-1.20.1` for Minecraft 1.20.1 (Forge). Release files are not kept in the repository, and older releases have been removed.
 
 ## Getting started
 
@@ -36,7 +36,7 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 Version **0.2.9** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
-**What is new in 0.2.8:** faster, more responsive seed checks in big packs such as TerraFirmaGreg (1.20.1 build) and groundwork for animal checks. **Earlier in 0.2.7:** two more optional wishlist checks, Crops (enough of the loaded crops fit the yearly climate at spawn) and, on 1.21.1 only, Farmland moisture (rain alone keeps farmland 30-80% moist). **Earlier in 0.2.6:** the single Freshwater requirement is replaced by separate, optional River, Lake and Coast or ocean checks, each with its own distance (the presets no longer require water). The result screen shows the forest type and tree density at spawn. Saved seeds and wishlists from older versions still load. See [the changelog](CHANGELOG.md).
+**What is new in 0.2.9:** an optional Animals that can spawn check (the biomes near spawn must list enough farm animals and wild prey; it says "can spawn", not "will be there"). **Earlier in 0.2.8:** faster, more responsive seed checks in big packs such as TerraFirmaGreg (1.20.1 build) and groundwork for animal checks. **Earlier in 0.2.7:** two more optional wishlist checks, Crops (enough of the loaded crops fit the yearly climate at spawn) and, on 1.21.1 only, Farmland moisture (rain alone keeps farmland 30-80% moist). **Earlier in 0.2.6:** the single Freshwater requirement is replaced by separate, optional River, Lake and Coast or ocean checks, each with its own distance (the presets no longer require water). The result screen shows the forest type and tree density at spawn. Saved seeds and wishlists from older versions still load. See [the changelog](CHANGELOG.md).
 
 See [the test report](TEST-REPORT.md) for results and limits, [preset research](RESEARCH-AND-PROFILES.md) for the starting styles, and [API notes](API-NOTES.md) for generation details.
 
