@@ -2,6 +2,11 @@
 
 > Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.7 remains published (0.2.6 releases were deleted too).
 
+## 0.2.8 for Minecraft 1.20.1 / Forge (8 October 2026, not published)
+- Faster seed checks and a quicker Pause in big modpacks: every seed check used to reopen all installed mods and data packs, which took 3-8 seconds in the TerraFirmaGreg pack. Scout now opens them once per search and shares them (closed 20 seconds after the last check). A scratch world also takes TerraFirmaGreg's global seed later and gives it back sooner, so the search threads wait less. Measured in the full TerraFirmaGreg pack: preparing a seed check went from 3-8 s to 5-20 ms after the first, and Pause took effect in 0-100 ms (was 1.9-4 s). Seeds checked in a fixed 20 s were roughly the same, because chunk generation dominates.
+- Groundwork for animal checks: an animal catalog lists the land animals each biome of the selected world can spawn. It is not a wishlist option yet.
+- New optional logging: start the game with -Dterrafirmascout.timing=true to log how long each scratch world takes to prepare and close.
+
 ## 0.2.7 for Minecraft 1.20.1 / Forge (8 October 2026, published as prerelease)
 - Idea taken from a review of the old TFC Seed Maker (GPLv3, TFC 1.7.10; no code copied, its crops item was never finished): two new optional wishlist checks, never part of the presets.
 - **Crops:** counts the crops whose climate range (read from the loaded data, so addon crops count) contains the yearly average temperature at the final spawn. It needs at least 10 crops, or half of all loaded crops if fewer exist. The result row lists some of them.

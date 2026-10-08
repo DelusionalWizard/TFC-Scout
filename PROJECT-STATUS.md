@@ -1,5 +1,7 @@
 # Current project status
 
+**0.2.8 for 1.20.1 (8 October 2026, Claude Code, not yet pushed or published): shared scratch-world resources and earlier seed release (see CHANGELOG), animal catalog groundwork. Tests that ran: 41 JUnit passed; real Forge launches of the harness build with plain TFC + Patchouli and with the full TerraFirmaGreg Modern 0.13.10 pack passed the whole smoke suite (pause 0-100 ms, stop 100-300 ms in the pack). The RELEASE jar terrafirmascout-1.20.1-0.2.8.jar (SHA-256 77233d7e0b80d7b4509c6779a95ea7b5cf3e87d3bfb7447c250e61c0b911d651) was launched without the test harness in both setups (work/port1201/prod/runrel.sh): the mod loaded, its mixins applied and the title screen was reached; its screens were not clicked through by hand. Not installed anywhere else, not published.**
+
 **0.2.7 for 1.20.1 (8 October 2026, Claude Code, pushed and published as GitHub prerelease): Crops wishlist check added (no Farmland moisture on 3.2). Tests that ran: 41 JUnit tests; real Forge launches of the harness build passed with plain TFC + Patchouli (Crops 8/8 seeds confirmed) and with the full TerraFirmaGreg Modern 0.13.10 pack (Crops 8/8; river, lake, coast as before). Release jars not yet built.**
 
 **Older GitHub releases deleted (8 October 2026, at Cooper's request): v0.2.1, v0.2.2, v0.2.3, v0.2.5 and v0.2.5-1.20.1, with their tags. Only v0.2.6 and v0.2.6-1.20.1 remain on GitHub; older release descriptions in these records refer to deleted releases. Branches and source history are unchanged.**
