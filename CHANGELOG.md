@@ -1,6 +1,6 @@
 # Change history
 
-> Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.8 remains published (0.2.6 and 0.2.7 releases were deleted too).
+> Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 0.2.9 remains published (0.2.6, 0.2.7 and 0.2.8 releases were deleted too).
 
 ## 0.2.9 (8 October 2026, published as prerelease)
 - New optional wishlist check **Animals that can spawn**: the biomes within a chosen distance of spawn must list at least 3 farm animals (TFC's tfc:farm_animals tag) and 2 wild prey species (tfc:wild_prey_animals). It uses the biome spawn lists in the world's data (addon animals count). If the world lists no farm or wild animals at all, the check is treated as not needed. It says "can spawn"; it does not promise an animal will be there. Default distances per preset are stored with the other distances (300 / 500 / 800 / 1500 / 2500 blocks) but the presets do not require it.
