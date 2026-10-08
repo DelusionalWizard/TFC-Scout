@@ -138,6 +138,12 @@ public final class DevelopmentSmokeTest {
             String benchmark="";
             if(suite){
                 Thread.sleep(8000); // Allow all specification pages to render and be captured by the UI thread.
+                {
+                    var animals=com.cooper.terrafirmascout.tfc.AnimalCatalog.of(c.copyGenerator().getBiomeSource());
+                    if(animals.species().isEmpty()||animals.biomeCount()==0)throw new AssertionError("Animal catalog is empty");
+                    var plains=net.minecraft.resources.ResourceLocation.parse("tfc:plains");
+                    benchmark+="Animal catalog: "+animals.species().size()+" animals listed across "+animals.biomeCount()+" biomes; plains lists "+animals.inBiome(plains).keySet()+"\n";
+                }
                 for(var water:java.util.List.of(com.cooper.terrafirmascout.score.Criterion.RIVER,com.cooper.terrafirmascout.score.Criterion.LAKE,com.cooper.terrafirmascout.score.Criterion.COAST,com.cooper.terrafirmascout.score.Criterion.CROPS,com.cooper.terrafirmascout.score.Criterion.FARMLAND)) {
                     int ok=0,tried=0;
                     for(long ws=seed;ws<seed+8;ws++) {

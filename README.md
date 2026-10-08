@@ -34,7 +34,7 @@ When a confirmed match appears, choose **Use this seed** or keep searching. Stri
 
 ## Current status
 
-Version **0.2.7** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
+Version **0.2.8** is experimental. A fully confirmed Dream Start result and broader modpack compatibility still need further testing.
 
 **What is new in 0.2.7:** two more optional wishlist checks, Crops (enough of the loaded crops fit the yearly climate at spawn) and, on 1.21.1 only, Farmland moisture (rain alone keeps farmland 30-80% moist). **Earlier in 0.2.6:** the single Freshwater requirement is replaced by separate, optional River, Lake and Coast or ocean checks, each with its own distance (the presets no longer require water). The result screen shows the forest type and tree density at spawn. Saved seeds and wishlists from older versions still load. See [the changelog](CHANGELOG.md).
 
