@@ -211,9 +211,38 @@ public final class TFCFeatureProbe {
         }
         return new ArrayList<>(chunks.values());
     }
+    private static final Map<Criterion,Set<String>> SURFACE_SAMPLES=Map.of(
+        Criterion.TIN,Set.of("ore/small_cassiterite"),
+        Criterion.COPPER_VEIN,Set.of("ore/small_native_copper","ore/small_malachite","ore/small_tetrahedrite"));
+    private static final Map<Criterion,Set<String>> VEIN_ORES=Map.of(
+        Criterion.TIN,Set.of("cassiterite"),Criterion.COPPER_VEIN,Set.of("native_copper","malachite","tetrahedrite"));
+    /** TFC marks a vein with small loose ore on the ground up to 35 blocks above it, so a sample found at the surface says where to dig. Only a shortcut: a chunk without a sample is still scanned in full. */
+    private Evidence viaSurfaceSample(ChunkAccess chunk,Criterion c,BlockPos spawn,int max) {
+        var cp=chunk.getPos(); int samples=0;
+        for(int lx=0;lx<16&&samples<4;lx++) for(int lz=0;lz<16&&samples<4;lz++) {
+            int sx=cp.getMinBlockX()+lx,sz=cp.getMinBlockZ()+lz; if(Math.hypot((double)sx-spawn.getX(),(double)sz-spawn.getZ())>max) continue;
+            int top=chunk.getHeight(Heightmap.Types.WORLD_SURFACE_WG,lx,lz),ground=ChunkData.get(chunk).getRockData().getSurfaceHeight()[lz*16+lx];
+            for(int sy=Math.min(top+1,chunk.getMaxBuildHeight()-1);sy>=Math.max(chunk.getMinBuildHeight(),ground-2);sy--) {
+                var sample=BuiltInRegistries.BLOCK.getKey(chunk.getBlockState(new BlockPos(sx,sy,sz)).getBlock());
+                if(!sample.getNamespace().equals("tfc")||!SURFACE_SAMPLES.get(c).contains(sample.getPath())) continue;
+                samples++;
+                for(int ox=0;ox<16;ox++) for(int oz=0;oz<16;oz++) {
+                    int x=cp.getMinBlockX()+ox,z=cp.getMinBlockZ()+oz; double d=Math.hypot((double)x-spawn.getX(),(double)z-spawn.getZ()); if(d>max) continue;
+                    for(int y=sy;y>=Math.max(chunk.getMinBuildHeight(),sy-40);y--) {
+                        var pos=new BlockPos(x,y,z); var id=BuiltInRegistries.BLOCK.getKey(chunk.getBlockState(pos).getBlock());
+                        if(id.getNamespace().equals("tfc")&&isOre(id.getPath(),VEIN_ORES.get(c)))
+                            return verified(d,pos,proximity(c,d),"Surface sample "+sample.getPath().substring(10)+" at "+sx+", "+sy+", "+sz+"; ore found "+(sy-y)+" blocks below it: "+id);
+                    }
+                }
+                break;
+            }
+        }
+        return null;
+    }
     private Evidence inspect(ScratchWorld w,ChunkAccess chunk,Criterion c,BlockPos spawn,Set<BlockPos> pieces,int[] units) {
         var cp=chunk.getPos();
         int max=c==Criterion.TERRAIN?profile.terrainRadius():c==Criterion.OPEN_GROUND?profile.campRadius():profile.distance(c);
+        if(c==Criterion.COPPER_VEIN||c==Criterion.TIN) { var viaSample=viaSurfaceSample(chunk,c,spawn,max); if(viaSample!=null) return viaSample; }
         for(int lx=0;lx<16;lx++) for(int lz=0;lz<16;lz++) {
             int x=cp.getMinBlockX()+lx,z=cp.getMinBlockZ()+lz; double d=Math.hypot((double)x-spawn.getX(),(double)z-spawn.getZ()); if(d>max) continue;
             int top=chunk.getHeight(Heightmap.Types.WORLD_SURFACE_WG,lx,lz);

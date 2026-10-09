@@ -4,7 +4,7 @@ license="EUPL-1.2"
 issueTrackerURL="https://github.com/DelusionalWizard/TFC-Scout/issues"
 [[mods]]
 modId="terrafirmascout"
-version="1.0.0"
+version="1.0.1"
 displayName="TerraFirmaScout"
 authors="Cooper"
 displayURL="https://github.com/DelusionalWizard/TFC-Scout"

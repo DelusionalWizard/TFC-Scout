@@ -1,6 +1,12 @@
 # Change history
 
-> Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only 1.0.0 remains published (0.2.6 to 0.2.9 releases were deleted too).
+> Older GitHub releases (0.2.1, 0.2.2, 0.2.3, 0.2.5 and 0.2.5 for 1.20.1) were deleted on 8 October 2026; only the latest stable release remains published (0.2.6 to 0.2.9 releases were deleted too).
+
+## 1.0.1 (9 October 2026, published)
+- Pick your world has a search box on every tab, which filters the resources, biomes, rocks, forest types and limits as you type. The box is cleared when you change tab.
+- Copper vein and tin checks now look for the small loose ore TFC leaves on the surface above a vein (it sits up to 35 blocks above it) and dig down from it first. A chunk without a sample is still scanned in full, so results do not change; positive checks are faster. Evidence reads "Surface sample ... ore found N blocks below it".
+- Translation groundwork: button, title and label text on the world-creation, options, results, saved-seed, note and Pick your world screens now comes from `assets/terrafirmascout/lang/en_us.json`. See TRANSLATING.md. Preset and criterion names, the evidence text and status messages are still English.
+- New TranslationTest checks that every key used in the code exists in en_us.json and that other language files keep the same `%s` slots.
 
 ## 1.0.0 (8 October 2026, published)
 Audit of the whole mod before 1.0.0. Fixes:

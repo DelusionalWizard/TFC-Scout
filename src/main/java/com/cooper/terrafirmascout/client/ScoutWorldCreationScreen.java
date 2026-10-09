@@ -25,7 +25,7 @@ public final class ScoutWorldCreationScreen extends Screen {
     private EditBox score,radius; private Button use,pause,keep,find,stop,profile,custom,history,export,copySeed,copyReport,options,results; private SeedResult savedResult;
     private Map<String,Double> customValues; private SpecificationDraft specification;
     public ScoutWorldCreationScreen(CreateWorldScreen parent) {
-        super(Component.literal("TerraFirmaScout")); this.parent=parent; reveal=ScoutConfig.REVEAL.get();
+        super(Lang.t("terrafirmascout.title")); this.parent=parent; reveal=ScoutConfig.REVEAL.get();
         preset=MODES.contains(prefs.preset)?prefs.preset:"god";
     }
     @Override protected void init() {
@@ -33,7 +33,7 @@ public final class ScoutWorldCreationScreen extends Screen {
         profile=addRenderableWidget(Button.builder(Component.literal(profileName()),b->{
             preset=MODES.get((MODES.indexOf(preset)+1)%MODES.size()); updateProfileFields();
         }).bounds(left,32,half,20).build());
-        custom=addRenderableWidget(Button.builder(Component.literal("Pick your world"),b->{
+        custom=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.pick"),b->{
             try {
                 if(specification==null)specification=SpecificationDraft.load(selectedProfile());
                 var draft=new com.google.gson.GsonBuilder().create().fromJson(new com.google.gson.GsonBuilder().create().toJson(specification),SpecificationDraft.class);
@@ -42,32 +42,32 @@ public final class ScoutWorldCreationScreen extends Screen {
                 minecraft.setScreen(new SpecificationScreen(this,draft,biomes,rocks,values->{specification=values;preset="specification";}));
             }catch(Exception e){message="Could not open your settings: "+e.getMessage();}
         }).bounds(left+half+8,32,Math.max(60,half-92),20).build());
-        history=addRenderableWidget(Button.builder(Component.literal("Saved seeds"),b->minecraft.setScreen(new HistoryScreen(this,result->{savedResult=result;com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: saved seed {} picked (search running={})",result.seed(),running());message="Loaded a "+result.profile().displayName()+" seed. Scout will check your world settings before using it.";})))
+        history=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.history.title"),b->minecraft.setScreen(new HistoryScreen(this,result->{savedResult=result;com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: saved seed {} picked (search running={})",result.seed(),running());message="Loaded a "+result.profile().displayName()+" seed. Scout will check your world settings before using it.";})))
             .bounds(left+content-86,32,86,20).build());
-        score=new EditBox(font,left+68,58,44,18,Component.literal("Minimum score")); score.setFilter(v->v.matches("[0-9]{0,3}")); addRenderableWidget(score);
-        radius=new EditBox(font,left+171,58,60,18,Component.literal("Search radius")); radius.setFilter(v->v.matches("[0-9]{0,5}")); addRenderableWidget(radius);
+        score=new EditBox(font,left+68,58,44,18,Lang.t("terrafirmascout.world.min_score")); score.setFilter(v->v.matches("[0-9]{0,3}")); addRenderableWidget(score);
+        radius=new EditBox(font,left+171,58,60,18,Lang.t("terrafirmascout.world.radius")); radius.setFilter(v->v.matches("[0-9]{0,5}")); addRenderableWidget(radius);
         int revealWidth=Math.max(65,Math.min(140,content-240));
-        addRenderableWidget(Button.builder(Component.literal(reveal?(revealWidth<110?"Hide":"Hide locations"):(revealWidth<110?"Reveal":"Reveal locations")),b->{
-            reveal=!reveal;b.setMessage(Component.literal(reveal?(revealWidth<110?"Hide":"Hide locations"):(revealWidth<110?"Reveal":"Reveal locations")));
+        addRenderableWidget(Button.builder(Lang.t(reveal?(revealWidth<110?"terrafirmascout.world.hide_short":"terrafirmascout.world.hide"):(revealWidth<110?"terrafirmascout.world.reveal_short":"terrafirmascout.world.reveal")),b->{
+            reveal=!reveal;b.setMessage(Lang.t(reveal?(revealWidth<110?"terrafirmascout.world.hide_short":"terrafirmascout.world.hide"):(revealWidth<110?"terrafirmascout.world.reveal_short":"terrafirmascout.world.reveal")));
         }).bounds(left+content-revealWidth,58,revealWidth,20).build());
-        options=addRenderableWidget(Button.builder(Component.literal("Options"),b->minecraft.setScreen(new ScoutOptionsScreen(this,prefs,!running()&&!working(),this::startSeedCheck)))
+        options=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.options"),b->minecraft.setScreen(new ScoutOptionsScreen(this,prefs,!running()&&!working(),this::startSeedCheck)))
             .bounds(left+content-76,82,76,16).build());
-        results=addRenderableWidget(Button.builder(Component.literal("Results"),b->minecraft.setScreen(new ScoutResultsScreen(this,()->engine==null?null:engine.session,()->!running()&&!working()&&!busy,
+        results=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.results"),b->minecraft.setScreen(new ScoutResultsScreen(this,()->engine==null?null:engine.session,()->!running()&&!working()&&!busy,
             result->{savedResult=result;com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: result {} picked from Results (search running={})",result.seed(),running());message=result.selectable(result.fingerprint())?"Showing a confirmed match.":"Showing a close call. It is not confirmed, so it cannot be used yet.";},this::startCloserLook)))
             .bounds(left+content-76,100,76,16).build());
         int space=content-18,findWidth=(int)(space*0.33),pauseWidth=(int)(space*0.18),keepWidth=(int)(space*0.29),cancelWidth=space-findWidth-pauseWidth-keepWidth;
-        find=addRenderableWidget(Button.builder(Component.literal("Find a seed"),b->start()).bounds(left,height-52,findWidth,20).build());
-        pause=addRenderableWidget(Button.builder(Component.literal("Pause"),b->{if(engine!=null) { if(engine.session.paused){engine.session.resume();com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: search resumed by the player");}else{engine.session.pause();com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: search paused by the player");} }})
+        find=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.find"),b->start()).bounds(left,height-52,findWidth,20).build());
+        pause=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.pause"),b->{if(engine!=null) { if(engine.session.paused){engine.session.resume();com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: search resumed by the player");}else{engine.session.pause();com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: search paused by the player");} }})
             .bounds(left+findWidth+6,height-52,pauseWidth,20).build());
-        keep=addRenderableWidget(Button.builder(Component.literal("Keep searching"),b->{if(engine!=null){engine.session.resume();com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: Keep searching pressed");}}).bounds(left+findWidth+pauseWidth+12,height-52,keepWidth,20).build());
-        stop=addRenderableWidget(Button.builder(Component.literal("Stop"),b->{com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: Stop pressed (running={}, paused={})",running(),engine!=null&&engine.session.paused);if(engine!=null)engine.close();if(job!=null)job.cancel();message="Stopping...";}).bounds(left+content-cancelWidth,height-52,cancelWidth,20).build());
+        keep=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.keep"),b->{if(engine!=null){engine.session.resume();com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: Keep searching pressed");}}).bounds(left+findWidth+pauseWidth+12,height-52,keepWidth,20).build());
+        stop=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.stop"),b->{com.cooper.terrafirmascout.TerraFirmaScout.LOGGER.info("Scout: Stop pressed (running={}, paused={})",running(),engine!=null&&engine.session.paused);if(engine!=null)engine.close();if(job!=null)job.cancel();message="Stopping...";}).bounds(left+content-cancelWidth,height-52,cancelWidth,20).build());
         int row=content-16,useWidth=(int)(row*0.25),seedWidth=(int)(row*0.17),reportWidth=(int)(row*0.20),fileWidth=(int)(row*0.22),backWidth=row-useWidth-seedWidth-reportWidth-fileWidth;
         int x=left;
-        use=addRenderableWidget(Button.builder(Component.literal("Use this seed"),b->applySeed()).bounds(x,height-27,useWidth,20).build()); x+=useWidth+4;
-        copySeed=addRenderableWidget(Button.builder(Component.literal("Copy seed"),b->{var r=bestResult();if(r!=null){minecraft.keyboardHandler.setClipboard(Long.toString(r.seed()));message="Seed "+r.seed()+" copied.";}}).bounds(x,height-27,seedWidth,20).build()); x+=seedWidth+4;
-        copyReport=addRenderableWidget(Button.builder(Component.literal("Copy report"),b->{var r=bestResult();if(r!=null){minecraft.keyboardHandler.setClipboard(ReportText.text(r,reveal));message="Report copied"+(reveal?" (with locations).":" (locations hidden).");}}).bounds(x,height-27,reportWidth,20).build()); x+=reportWidth+4;
-        export=addRenderableWidget(Button.builder(Component.literal("Save as file"),b->{try{var path=ResultHistory.export(bestResult(),reveal);message="Report saved: "+path.getFileName();}catch(Exception e){message="Export failed: "+e.getMessage();}}).bounds(x,height-27,fileWidth,20).build()); x+=fileWidth+4;
-        addRenderableWidget(Button.builder(Component.literal("Back"),b->onClose()).bounds(x,height-27,backWidth,20).build());
+        use=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.use"),b->applySeed()).bounds(x,height-27,useWidth,20).build()); x+=useWidth+4;
+        copySeed=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.copy_seed"),b->{var r=bestResult();if(r!=null){minecraft.keyboardHandler.setClipboard(Long.toString(r.seed()));message="Seed "+r.seed()+" copied.";}}).bounds(x,height-27,seedWidth,20).build()); x+=seedWidth+4;
+        copyReport=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.copy_report"),b->{var r=bestResult();if(r!=null){minecraft.keyboardHandler.setClipboard(ReportText.text(r,reveal));message="Report copied"+(reveal?" (with locations).":" (locations hidden).");}}).bounds(x,height-27,reportWidth,20).build()); x+=reportWidth+4;
+        export=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.world.save_file"),b->{try{var path=ResultHistory.export(bestResult(),reveal);message="Report saved: "+path.getFileName();}catch(Exception e){message="Export failed: "+e.getMessage();}}).bounds(x,height-27,fileWidth,20).build()); x+=fileWidth+4;
+        addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.back"),b->onClose()).bounds(x,height-27,backWidth,20).build());
         updateProfileFields();
     }
     private String profileName() { return preset.equals("specification")?"Your wishlist":preset.equals("custom")?"Custom":com.cooper.terrafirmascout.profile.SeedQuality.fromName(preset).label; }
@@ -75,7 +75,7 @@ public final class ScoutWorldCreationScreen extends Screen {
         try {
             var p=currentProfile();
             score.setValue(String.valueOf(prefs.minScore.getOrDefault(preset,p.minScore()))); radius.setValue(String.valueOf(prefs.radius.getOrDefault(preset,p.radius())));
-            profile.setMessage(Component.literal(profileName())); if(find!=null)find.setMessage(Component.literal("Find a seed"));
+            profile.setMessage(Component.literal(profileName())); if(find!=null)find.setMessage(Lang.t("terrafirmascout.world.find"));
         } catch(Exception e) { message="Check your settings: "+e.getMessage(); }
     }
     private void savePrefs() {
@@ -142,7 +142,7 @@ public final class ScoutWorldCreationScreen extends Screen {
     private void announceMatch(SeedResult result) {
         if(!prefs.matchSound) return;
         minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.PLAYER_LEVELUP,1.0f));
-        SystemToast.addOrUpdate(minecraft.getToasts(),SystemToast.SystemToastId.PERIODIC_NOTIFICATION,Component.literal("TerraFirmaScout: match found"),Component.literal("Seed "+result.seed()));
+        SystemToast.addOrUpdate(minecraft.getToasts(),SystemToast.SystemToastId.PERIODIC_NOTIFICATION,Lang.t("terrafirmascout.toast.match_found"),Lang.t("terrafirmascout.toast.seed",result.seed()));
     }
     private void applySeed() {
         if(busy||working()) return; var result=bestResult(); if(result==null||!result.selectable(result.fingerprint())) return;
@@ -170,10 +170,10 @@ public final class ScoutWorldCreationScreen extends Screen {
         }
         find.active=idle; profile.active=idle; custom.active=idle; score.active=!running&&!working; radius.active=!running&&!working;
         var s=engine==null?null:engine.session; boolean stopping=s!=null&&s.cancelled&&!s.finished; pause.active=running&&!stopping&&!busy; keep.active=running&&!stopping&&s.paused&&!busy; stop.active=(running&&!stopping)||working;
-        pause.setMessage(Component.literal(s!=null&&s.paused?"Resume":"Pause"));
+        pause.setMessage(Lang.t(s!=null&&s.paused?"terrafirmascout.world.resume":"terrafirmascout.world.pause"));
         var best=bestResult(); use.active=!busy&&!working&&best!=null&&best.selectable(best.fingerprint()); history.active=idle; export.active=use.active;
         copySeed.active=best!=null; copyReport.active=best!=null; options.active=!working;
-        int count=s==null?0:s.matches().size()+s.closeCalls().size(); results.setMessage(Component.literal(count==0?"Results":"Results ("+count+")"));
+        int count=s==null?0:s.matches().size()+s.closeCalls().size(); results.setMessage((count==0?Lang.t("terrafirmascout.world.results"):Lang.t("terrafirmascout.world.results_count",count)));
     }
     /** What the search is doing right now, including the moments after Pause or Stop while a check in progress finishes. */
     private String status(SearchSession s) {

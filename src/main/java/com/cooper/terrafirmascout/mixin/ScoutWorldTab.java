@@ -1,5 +1,6 @@
 package com.cooper.terrafirmascout.mixin;
-import com.cooper.terrafirmascout.client.ScoutWorldCreationScreen;
+
+import com.cooper.terrafirmascout.client.Lang;import com.cooper.terrafirmascout.client.ScoutWorldCreationScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.tabs.GridLayoutTab;
@@ -15,7 +16,7 @@ public abstract class ScoutWorldTab extends GridLayoutTab {
     protected ScoutWorldTab(Component title) { super(title); }
     @Inject(method="<init>",at=@At("TAIL"))
     private void scout$addButton(CreateWorldScreen parent,CallbackInfo ci) {
-        layout.addChild(Button.builder(Component.literal("TerraFirmaScout"),
+        layout.addChild(Button.builder(Lang.t("terrafirmascout.title"),
             button->Minecraft.getInstance().setScreen(new ScoutWorldCreationScreen(parent)))
             .width(310).build(),3,0,1,2);
     }
