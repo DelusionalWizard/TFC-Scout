@@ -173,6 +173,23 @@ public final class DevelopmentSmokeTest {
                     benchmark+="Water check "+water+": "+ok+" confirmed of "+tried+" seeds with candidates (8 seeds tried)\n";
                     if(ok==0)throw new AssertionError("No seed confirmed "+water+" ("+tried+" candidates)");
                 }
+                for(var ore:java.util.List.of(com.cooper.terrafirmascout.score.Criterion.COPPER_VEIN,com.cooper.terrafirmascout.score.Criterion.TIN)) {
+                    int ok=0,tried=0,viaSample=0; long nanos=0; String example="";
+                    for(long ws=seed;ws<seed+8;ws++) {
+                        var wa=new com.cooper.terrafirmascout.tfc.TFCWorldgenAdapter(ws,c.settings(),c.biomes());
+                        try {
+                            var wd=SpecificationDraft.fromPreset(ScoutProfile.beginner());wd.required.clear();wd.required.add(ore);wd.numbers.put(ore.name().toLowerCase()+"_distance",3000d);wd.numbers.put("min_score",0d);
+                            wd.numbers.put("temperature_min",-20d);wd.numbers.put("temperature_ideal_min",-20d);wd.numbers.put("temperature_ideal_max",40d);wd.numbers.put("temperature_max",40d);
+                            wd.numbers.put("rainfall_min",0d);wd.numbers.put("rainfall_ideal_min",0d);wd.numbers.put("rainfall_ideal_max",500d);wd.numbers.put("rainfall_max",500d);
+                            var wp=wd.build();var wcand=DetailedScanner.scan(wa,wa.spawnBiome(),wp,new SearchSession(),c.creation().worldgenLoadContext(),c.copyGenerator());
+                            if(wcand==null)continue; tried++;
+                            long t0=System.nanoTime(); var wr=new TFCFeatureProbe(c,wp,new SearchSession(),24).verify(wcand,fingerprint); nanos+=System.nanoTime()-t0;
+                            var we=wr.evidence().get(ore);
+                            if(we!=null&&we.state()==com.cooper.terrafirmascout.score.VerificationState.VERIFIED){ok++;if(we.detail().startsWith("Surface sample")){viaSample++;example=we.detail();}}
+                        } finally { wa.releaseThreadCaches(); }
+                    }
+                    benchmark+="Ore check "+ore+": "+ok+" confirmed of "+tried+" seeds with candidates, "+viaSample+" through a surface sample, "+(tried==0?0:nanos/tried/1000000)+" ms per seed"+(example.isEmpty()?"":" (e.g. "+example+")")+"\n";
+                }
                 var draft=SpecificationDraft.fromPreset(ScoutProfile.beginner());draft.required.clear();draft.required.add(com.cooper.terrafirmascout.score.Criterion.CLIMATE);
                 draft.nearbyBiomes.add(a.biome(spawn.getX(),spawn.getZ()).key().location().toString());draft.allBiomes=true;
                 draft.numbers.put("temperature_min",-20d);draft.numbers.put("temperature_ideal_min",-20d);draft.numbers.put("temperature_ideal_max",40d);draft.numbers.put("temperature_max",40d);

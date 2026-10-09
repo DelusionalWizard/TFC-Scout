@@ -12,7 +12,7 @@ final class CustomProfileScreen extends Screen {
     private final LinkedHashMap<String,Double> values=new LinkedHashMap<>();
     private final Map<String,EditBox> fields=new LinkedHashMap<>(); private int offset; private String error="";
     CustomProfileScreen(Screen parent,Map<String,Double> previous,Consumer<Map<String,Double>> done) {
-        super(Component.literal("Custom God settings")); this.parent=parent; this.done=done;
+        super(Lang.t("terrafirmascout.custom.title")); this.parent=parent; this.done=done;
         ScoutConfig.CUSTOM.forEach((key,v)-> { if(key.startsWith("custom.")) values.put(key.substring(7),v.get()); });
         if(previous!=null) values.putAll(previous);
     }
@@ -22,11 +22,11 @@ final class CustomProfileScreen extends Screen {
             var box=new EditBox(font,width/2+70,42+row++*24-offset,100,18,Component.literal(e.getKey()));
             box.setValue(String.valueOf(e.getValue())); box.setFilter(s->s.matches("-?[0-9]*\\.?[0-9]*")); fields.put(e.getKey(),box); addRenderableWidget(box);
         }
-        addRenderableWidget(Button.builder(Component.literal("Save"),b->{
+        addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.save"),b->{
             try { collect(); ScoutConfig.fromValues("custom",values); done.accept(Map.copyOf(values)); minecraft.setScreen(parent); }
             catch(Exception ex) { error="Check these settings: "+ex.getMessage(); }
         }).bounds(width/2-154,height-27,150,20).build());
-        addRenderableWidget(Button.builder(Component.literal("Cancel"),b->minecraft.setScreen(parent)).bounds(width/2+4,height-27,150,20).build());
+        addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.cancel"),b->minecraft.setScreen(parent)).bounds(width/2+4,height-27,150,20).build());
         position();
     }
     private void collect() { fields.forEach((key,box)-> { double n=Double.parseDouble(box.getValue()); if(!Double.isFinite(n))throw new IllegalArgumentException(key); values.put(key,n); }); }

@@ -11,27 +11,27 @@ final class ScoutOptionsScreen extends Screen {
     private final Screen parent; private final ScoutPrefs prefs; private final Consumer<String> checkSeed; private final boolean canCheck;
     private EditBox matches,minutes,seedBox; private Button speed,sound,check;
     ScoutOptionsScreen(Screen parent,ScoutPrefs prefs,boolean canCheck,Consumer<String> checkSeed) {
-        super(Component.literal("Search options")); this.parent=parent; this.prefs=prefs; this.canCheck=canCheck; this.checkSeed=checkSeed;
+        super(Lang.t("terrafirmascout.options.title")); this.parent=parent; this.prefs=prefs; this.canCheck=canCheck; this.checkSeed=checkSeed;
     }
-    private static String speedLabel(String s) { return switch(s) { case "low"->"Low"; case "high"->"High"; default->"Normal"; }; }
+    private static Component speedLabel(String s) { return Lang.t(switch(s) { case "low"->"terrafirmascout.options.speed_low"; case "high"->"terrafirmascout.options.speed_high"; default->"terrafirmascout.options.speed_normal"; }); }
     private static String speedHint(String s) { return switch(s) { case "low"->"Gentlest on your game: one scanner at a time."; case "high"->"Fastest, but the game may feel slower while it runs."; default->"A balanced number of scanners for your computer."; }; }
     @Override protected void init() {
         int w=Math.min(300,width-16),left=(width-w)/2;
-        speed=addRenderableWidget(Button.builder(Component.literal("Search speed: "+speedLabel(prefs.speed)),b-> {
+        speed=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.options.speed",speedLabel(prefs.speed)),b-> {
             var modes=List.of("low","normal","high"); prefs.speed=modes.get((modes.indexOf(prefs.speed)+1)%modes.size());
-            b.setMessage(Component.literal("Search speed: "+speedLabel(prefs.speed)));
+            b.setMessage(Lang.t("terrafirmascout.options.speed",speedLabel(prefs.speed)));
         }).bounds(left,34,w,20).build());
-        matches=new EditBox(font,left+w-50,74,50,18,Component.literal("Stop after matches")); matches.setFilter(v->v.matches("[0-9]{0,2}")); matches.setValue(String.valueOf(prefs.stopAfterMatches)); addRenderableWidget(matches);
-        minutes=new EditBox(font,left+w-50,100,50,18,Component.literal("Stop after minutes")); minutes.setFilter(v->v.matches("[0-9]{0,3}")); minutes.setValue(String.valueOf(prefs.stopAfterMinutes)); addRenderableWidget(minutes);
-        sound=addRenderableWidget(Button.builder(Component.literal("Sound when a match is found: "+(prefs.matchSound?"On":"Off")),b-> {
-            prefs.matchSound=!prefs.matchSound; b.setMessage(Component.literal("Sound when a match is found: "+(prefs.matchSound?"On":"Off")));
+        matches=new EditBox(font,left+w-50,74,50,18,Lang.t("terrafirmascout.options.stop_matches")); matches.setFilter(v->v.matches("[0-9]{0,2}")); matches.setValue(String.valueOf(prefs.stopAfterMatches)); addRenderableWidget(matches);
+        minutes=new EditBox(font,left+w-50,100,50,18,Lang.t("terrafirmascout.options.stop_minutes")); minutes.setFilter(v->v.matches("[0-9]{0,3}")); minutes.setValue(String.valueOf(prefs.stopAfterMinutes)); addRenderableWidget(minutes);
+        sound=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.options.sound",Lang.t(prefs.matchSound?"terrafirmascout.common.on":"terrafirmascout.common.off")),b-> {
+            prefs.matchSound=!prefs.matchSound; b.setMessage(Lang.t("terrafirmascout.options.sound",Lang.t(prefs.matchSound?"terrafirmascout.common.on":"terrafirmascout.common.off")));
         }).bounds(left,126,w,20).build());
-        seedBox=new EditBox(font,left,168,w-70,18,Component.literal("Seed to check")); seedBox.setMaxLength(64); seedBox.setHint(Component.literal("A seed number or text")); addRenderableWidget(seedBox);
-        check=addRenderableWidget(Button.builder(Component.literal("Check"),b-> {
+        seedBox=new EditBox(font,left,168,w-70,18,Lang.t("terrafirmascout.options.seed_label")); seedBox.setMaxLength(64); seedBox.setHint(Lang.t("terrafirmascout.options.seed_hint")); addRenderableWidget(seedBox);
+        check=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.options.check"),b-> {
             var text=seedBox.getValue().strip(); if(text.isEmpty()) return;
             apply(); checkSeed.accept(text);
         }).bounds(left+w-64,167,64,20).build()); check.active=canCheck;
-        addRenderableWidget(Button.builder(Component.literal("Done"),b->onClose()).bounds(width/2-75,height-27,150,20).build());
+        addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.done"),b->onClose()).bounds(width/2-75,height-27,150,20).build());
     }
     private void apply() {
         prefs.stopAfterMatches=parse(matches.getValue(),99); prefs.stopAfterMinutes=parse(minutes.getValue(),999); prefs.save();

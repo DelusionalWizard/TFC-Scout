@@ -13,7 +13,7 @@ final class ScoutResultsScreen extends Screen {
     private int page=0,shownMatches=-1,shownClose=-1; private final List<Button> lookButtons=new ArrayList<>();
     private String fit(String text,int pixels) { return font.width(text)<=pixels?text:font.plainSubstrByWidth(text,Math.max(10,pixels-font.width("...")))+"..."; }
     ScoutResultsScreen(Screen parent,Supplier<SearchSession> session,BooleanSupplier canLook,Consumer<SeedResult> view,Consumer<SeedResult> lookCloser) {
-        super(Component.literal("Results from this search")); this.parent=parent; this.session=session; this.canLook=canLook; this.view=view; this.lookCloser=lookCloser;
+        super(Lang.t("terrafirmascout.results.title")); this.parent=parent; this.session=session; this.canLook=canLook; this.view=view; this.lookCloser=lookCloser;
     }
     private List<SeedResult> matches() { var s=session.get(); return s==null?List.of():s.matches(); }
     private List<SeedResult> closeCalls() { var s=session.get(); return s==null?List.of():s.closeCalls(); }
@@ -25,18 +25,18 @@ final class ScoutResultsScreen extends Screen {
             int y=58+(i-page*rows)*24;
             if(i<matches.size()) {
                 var r=matches.get(i);
-                addRenderableWidget(Button.builder(Component.literal(fit("Match | "+r.seed()+" | "+r.profile().displayName()+" | "+r.score()+"%",rowWidth-12)),b->{view.accept(r);minecraft.setScreen(parent);}).bounds(left,y,rowWidth,20).build());
+                addRenderableWidget(Button.builder(Component.literal(fit(Lang.s("terrafirmascout.results.row_match",r.seed(),r.profile().displayName(),r.score()),rowWidth-12)),b->{view.accept(r);minecraft.setScreen(parent);}).bounds(left,y,rowWidth,20).build());
             } else {
                 var r=close.get(i-matches.size()); var open=CandidateScorer.unconfirmedRequired(r.evidence(),r.profile());
                 String missing=open.isEmpty()?"":open.get(0).label;
-                addRenderableWidget(Button.builder(Component.literal(fit("Close call | "+r.seed()+" | missing "+missing+" | "+r.score()+"%",rowWidth-94-12)),b->{view.accept(r);minecraft.setScreen(parent);}).bounds(left,y,rowWidth-94,20).build());
-                var look=addRenderableWidget(Button.builder(Component.literal("Look harder"),b->{lookCloser.accept(r);minecraft.setScreen(parent);}).bounds(left+rowWidth-90,y,90,20).build());
+                addRenderableWidget(Button.builder(Component.literal(fit(Lang.s("terrafirmascout.results.row_close",r.seed(),missing,r.score()),rowWidth-94-12)),b->{view.accept(r);minecraft.setScreen(parent);}).bounds(left,y,rowWidth-94,20).build());
+                var look=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.results.look_harder"),b->{lookCloser.accept(r);minecraft.setScreen(parent);}).bounds(left+rowWidth-90,y,90,20).build());
                 look.active=canLook.getAsBoolean(); lookButtons.add(look);
             }
         }
-        var previous=addRenderableWidget(Button.builder(Component.literal("Previous"),b->{page--;rebuildWidgets();}).bounds(width/2-154,height-52,100,20).build());previous.active=page>0;
-        var next=addRenderableWidget(Button.builder(Component.literal("Next"),b->{page++;rebuildWidgets();}).bounds(width/2+54,height-52,100,20).build());next.active=(page+1)*rows<total;
-        addRenderableWidget(Button.builder(Component.literal("Back"),b->minecraft.setScreen(parent)).bounds(width/2-75,height-27,150,20).build());
+        var previous=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.previous"),b->{page--;rebuildWidgets();}).bounds(width/2-154,height-52,100,20).build());previous.active=page>0;
+        var next=addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.next"),b->{page++;rebuildWidgets();}).bounds(width/2+54,height-52,100,20).build());next.active=(page+1)*rows<total;
+        addRenderableWidget(Button.builder(Lang.t("terrafirmascout.common.back"),b->minecraft.setScreen(parent)).bounds(width/2-75,height-27,150,20).build());
     }
     @Override public void tick() {
         if(matches().size()!=shownMatches||closeCalls().size()!=shownClose) rebuildWidgets();
